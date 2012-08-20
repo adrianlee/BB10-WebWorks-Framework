@@ -30,7 +30,7 @@ function _getCmd(ext) {
         configureARM,
 
         //strip binary commands
-        stripX86 = "ntox86-strip *.so",
+        stripX86 = "ntoarmv7-strip *.so",
         stripARM = "ntoarmv7-strip *.so",
 
         //Command constants
@@ -47,7 +47,7 @@ function _getCmd(ext) {
 
     //configure-qsk commands
     configurePrefix = utils.isWindows() ? SH_CMD : "";
-    configureX86 = configurePrefix + path.join(simDir, "configure-qsk x86");
+    configureX86 = configurePrefix + path.join(simDir, "configure-qsk arm a9");
     configureARM = configurePrefix + path.join(deviceDir, "configure-qsk arm a9");
 
     //If native folder exists, Build
