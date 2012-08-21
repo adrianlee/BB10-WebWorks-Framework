@@ -16,10 +16,22 @@
 
 #include <gtest/gtest.h>
 #include <json/value.h>
-#include "../pim_contacts_qt.hpp"
+#include "../pim_calendar_qt.hpp"
 
 int contactId;
 
+TEST(PimCalendar, CanGetTimezones)
+{
+    webworks::PimCalendarQt pimCalendar;
+    Json::Value args;
+
+    Json::Value result = pimCalendar.GetTimezones();
+
+    //EXPECT_EQ(true, result["_success"].asBool());
+
+    //contactId = result["id"].asInt();
+}
+/*
 TEST(PimContacts, CanCreateContact)
 {
     webworks::PimContactsQt pimContacts;
@@ -170,7 +182,7 @@ TEST(PimContacts, CanRemoveContact)
 
     EXPECT_EQ(true, result["_success"].asBool());
 }
-
+*/
 int main(int argc, char **argv)
 {
     ::testing::InitGoogleTest(&argc, argv);

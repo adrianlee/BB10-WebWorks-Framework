@@ -31,6 +31,7 @@
 #include <bb/pim/calendar/Attendee.hpp>
 #include <bb/pim/calendar/AttendeeRole.hpp>
 #include <bb/pim/calendar/EventSearchParameters.hpp>
+#include <bb/pim/calendar/Timezone.hpp>
 #include <bb/pim/account/AccountService.hpp>
 #include <bb/pim/account/Account.hpp>
 #include <bb/pim/account/Service.hpp>
@@ -223,11 +224,12 @@ Json::Value PimCalendarQt::GetCalendarFolders()
 {
     bbpim::CalendarService service;
     QList<bbpim::CalendarFolder> folders = service.folders();
-    Json::Value folderList = Json::Value();
+    Json::Value folderList;
 
     for (QList<bbpim::CalendarFolder>::const_iterator i = folders.constBegin(); i != folders.constEnd(); i++) {
         bbpim::CalendarFolder folder = *i;
-        Json::Value f = Json::Value();
+        Json::Value f;
+
         f["id"] = Json::Value(folder.id());
         f["accountId"] = Json::Value(folder.accountId());
         f["name"] = Json::Value(folder.name().toStdString());
@@ -238,6 +240,28 @@ Json::Value PimCalendarQt::GetCalendarFolders()
     }
 
     return folderList;
+}
+
+Json::Value PimCalendarQt::GetTimezones()
+{
+    // TODO it always returns an empty list!! even tried running it as root (as unit test)
+    fprintf(stderr, "%s\n", "PimCalendarQt::GetTimezones!!!");
+    bbpim::CalendarService service;
+    QList<bbpim::Timezone> timezones = service.timezones();
+    Json::Value timezoneList;
+    fprintf(stderr, "Timezone list empty? %s\n", timezones.empty() ? "true" : "false");
+    for (QList<bbpim::Timezone>::const_iterator i = timezones.constBegin(); i != timezones.constEnd(); i++) {
+        bbpim::Timezone timezone = *i;
+        Json::Value tz;
+
+        tz["id"] = timezone.id();
+        tz["label"] = timezone.label().toStdString();
+        tz["posixFormat"] = timezone.posixFormat().toStdString();
+        tz["index"] = timezone.index();
+        timezoneList.append(tz);
+    }
+
+    return timezoneList;
 }
 
 Json::Value PimCalendarQt::CreateCalendarEvent(const Json::Value& args)
@@ -277,15 +301,22 @@ Json::Value PimCalendarQt::CreateCalendarEvent(const Json::Value& args)
     //recurrence.setWeekInMonth(1);
     ev.setRecurrence(recurrence);
 */
-/*
+
     bbpim::Attendee attendee;
     attendee.setName(QString("Susan Boyle"));
     attendee.setEmail(QString("sboyle@rim.com"));
     attendee.setType(bbpim::Attendee::Host);
     attendee.setRole(bbpim::AttendeeRole::Chair);
 
+    bbpim::Attendee attendee2;
+    attendee.setName(QString("Bunny Yappi"));
+    attendee.setEmail(QString("bunnyyappi@yahoo.com"));
+    attendee.setType(bbpim::Attendee::Host);
+    attendee.setRole(bbpim::AttendeeRole::ReqParticipant);
+
     ev.addAttendee(attendee);
-*/
+    ev.addAttendee(attendee2);
+
 /*
     for (int i = 0; i < attributeKeys.size(); i++) {
         const std::string key = attributeKeys[i];
@@ -293,8 +324,12 @@ Json::Value PimCalendarQt::CreateCalendarEvent(const Json::Value& args)
         addAttributeKind(contactBuilder, attributeObj[key], key);
     }
 */
+    bbpim::Notification notification;
+    notification.setComments(QString("Some comments for you"));
+    notification.setNotifyAll(true);
+
     bbpim::CalendarService service;
-    service.createEvent(ev, bbpim::Notification());
+    service.createEvent(ev, notification);
 
 
 
@@ -310,8 +345,9 @@ Json::Value PimCalendarQt::CreateCalendarEvent(const Json::Value& args)
     return returnObj;
 }
 
-Json::Value PimCalendarQt::DeleteCalendarEvent(const Json::Value& contactObj)
-{/*
+Json::Value PimCalendarQt::DeleteCalendarEvent(const Json::Value& calEventObj)
+{
+/*
     Json::Value returnObj;
 
     if (contactObj.isMember("contactId") && contactObj["contactId"].isInt()) {
@@ -336,6 +372,9 @@ Json::Value PimCalendarQt::DeleteCalendarEvent(const Json::Value& contactObj)
 
 Json::Value PimCalendarQt::EditCalendarEvent(bbpim::CalendarEvent& calEvent, const Json::Value& attributeObj)
 {
+    bbpim::CalendarService service;
+    service.updateEvent(calEvent, bbpim::Notification());
+
     /*
     bbpim::ContactBuilder contactBuilder(contact.edit());
     const Json::Value::Members attributeKeys = attributeObj.getMemberNames();

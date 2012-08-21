@@ -67,20 +67,27 @@ std::string PimCalendar::InvokeMethod(const std::string& command)
         strCommand = command;
     }
 
+    fprintf(stderr, "strCommand: %s\n", strCommand.c_str());
+
     if (strCommand == "find") {
         startThread(FindThread, obj);
     } else if (strCommand == "save") {
         startThread(SaveThread, obj);
-
     } else if (strCommand == "remove") {
         startThread(RemoveThread, obj);
     } else if (strCommand == "getCalendarFolders") {
-        fprintf(stderr, "Inside command: %s\n", strCommand.c_str());
         webworks::PimCalendarQt pim_qt;
         Json::Value result = pim_qt.GetCalendarFolders();
         Json::FastWriter writer;
         std::string str = writer.write(result);
         fprintf(stderr, "Calendar Folders Result: %s", str.c_str());
+        return str;
+    } else if (strCommand == "getTimezones") {
+        webworks::PimCalendarQt pim_qt;
+        Json::Value result = pim_qt.GetTimezones();
+        Json::FastWriter writer;
+        std::string str = writer.write(result);
+        fprintf(stderr, "Timezone Result: %s", str.c_str());
         return str;
     }
 

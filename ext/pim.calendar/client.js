@@ -37,6 +37,10 @@ _self.getCalendarFolders = function () {
     return window.webworks.execSync(_ID, "getCalendarFolders");
 };
 
+_self.getTimezones = function () {
+    return window.webworks.execSync(_ID, "getTimezones");
+};
+
 _self.findEvents = function (onFindSuccess, onFindError, findOptions) {
     var callback,
         eventId;

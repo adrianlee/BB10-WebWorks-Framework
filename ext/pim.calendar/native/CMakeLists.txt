@@ -3,7 +3,7 @@ include_directories(${CMAKE_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../../dependencies/jnext_1_0_8_3/jncore/jnext-extensions/common)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../../dependencies/JsonCpp/jsoncpp-src-0.5.0/include)
 
-#add_subdirectory(unitTests)
+add_subdirectory(unitTests)
 
 if (CMAKE_COMPILER_IS_GNUCC)
     set(CMAKE_CXX_FLAGS "-fexceptions -fPIC ${CMAKE_CXX_FLAGS}")
