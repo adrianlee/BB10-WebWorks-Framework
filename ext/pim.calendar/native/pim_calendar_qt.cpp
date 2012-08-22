@@ -308,63 +308,78 @@ Json::Value PimCalendarQt::CreateCalendarEvent(const Json::Value& args)
     bb::pim::account::AccountService accountService;
     bb::pim::account::Account defaultCalAccnt = accountService.defaultAccount(bb::pim::account::Service::Calendars);
 
+    QDateTime startTime = QDateTime::fromString(args["start"].asString().c_str(), "yyyyMMddhhmm");
+    QDateTime endTime = QDateTime::fromString(args["end"].asString().c_str(), "yyyyMMddhhmm");
+
     ev.setAccountId(defaultCalAccnt.id());
     ev.setFolderId(1);
-    ev.setStartTime(QDateTime::fromString(args["start"].asString().c_str(), "yyyyMMddhhmm"));
-    ev.setEndTime(QDateTime::fromString(args["end"].asString().c_str(), "yyyyMMddhhmm"));
+    ev.setStartTime(startTime);
+    ev.setEndTime(endTime);
     // TODO(rtse): timezone
     ev.setSubject(args["summary"].asString().c_str());
     ev.setLocation(args["location"].asString().c_str());
 
-/*
-    bbpim::Recurrence recurrence;
-    recurrence.setFrequency(bbpim::Frequency::Monthly);
-    recurrence.setNumberOfOccurrences(12);
-    recurrence.setInterval(1);
-    recurrence.setUntil(QDateTime());
+    if (!args["recurrence"].isNull()) {
+        Json::Value recurrence_json = args["recurrence"];
 
-    if (!recurrence.isValid()) {
-        returnObj["_success"] = false;
-        returnObj["code"] = UNKNOWN_ERROR;
-        return returnObj;
+        if (recurrence_json["frequency"].isNull()) {
+            returnObj["_success"] = false;
+            returnObj["code"] = INVALID_ARGUMENT_ERROR;
+            return returnObj;
+        }
+
+        bbpim::Recurrence recurrence;
+        recurrence.setFrequency(bbpim::Frequency::Type(recurrence_json["frequency"].asInt()));
+        recurrence.setInterval(recurrence_json.get("interval", 1).asInt());
+
+        if (recurrence_json.isMember("expires")) {
+            recurrence.setUntil(QDateTime::fromString(recurrence_json["expires"].asCString(), "yyyyMMddhhmm"));
+        }
+
+        if (recurrence_json.isMember("numberOfOccurrences")) {
+            recurrence.setNumberOfOccurrences(recurrence_json["numberOfOccurrences"].asInt());
+        }
+
+        recurrence.setDayInWeek(recurrence_json.get("dayInWeek", 1 << (startTime.date().dayOfWeek()%7)).asInt());
+        recurrence.setWeekInMonth(recurrence_json.get("weekInMonth", (startTime.date().day()/7) + 1).asInt());
+        recurrence.setDayInMonth(recurrence_json.get("dayInMonth", startTime.date().day()).asInt());
+        recurrence.setMonthInYear(recurrence_json.get("monthInYear", startTime.date().month()).asInt());
+
+        if (!recurrence.isValid()) {
+            returnObj["_success"] = false;
+            returnObj["code"] = UNKNOWN_ERROR;
+            return returnObj;
+        }
+
+        ev.setRecurrence(recurrence);
     }
 
-    //recurrence.setStart(QDateTime::fromString("20121001", "yyyyMMdd"));
-    //recurrence.setEnd(QDateTime::fromString("20141001", "yyyyMMdd"));
-    //recurrence.setWeekInMonth(1);
-    ev.setRecurrence(recurrence);
-*/
+    for (int i = 0; i < args["attendees"].size(); i++) {
+        bbpim::Attendee attendee;
+        Json::Value attendee_json = args["attendees"][i];
 
-    bbpim::Attendee attendee;
-    attendee.setName(QString("Susan Boyle"));
-    attendee.setEmail(QString("sboyle@rim.com"));
-    attendee.setType(bbpim::Attendee::Host);
-    attendee.setRole(bbpim::AttendeeRole::Chair);
+        attendee.setName(QString(attendee_json.get("name", "").asCString()));
+        attendee.setEmail(QString(attendee_json.get("email", "").asCString()));
+        attendee.setType((bbpim::Attendee::Type)(attendee_json.get("type", bbpim::Attendee::Host).asInt()));
+        attendee.setRole((bbpim::AttendeeRole::Type)(attendee_json.get("role", bbpim::AttendeeRole::Chair).asInt()));
+        attendee.setContactId(attendee_json.get("contactId", 0).asInt());
+        attendee.setOwner(attendee_json.get("owner", false).asBool());
 
-    bbpim::Attendee attendee2;
-    attendee.setName(QString("Bunny Yappi"));
-    attendee.setEmail(QString("bunnyyappi@yahoo.com"));
-    attendee.setType(bbpim::Attendee::Host);
-    attendee.setRole(bbpim::AttendeeRole::ReqParticipant);
+        if (!attendee.isValid()) {
+            returnObj["_success"] = false;
+            returnObj["code"] = UNKNOWN_ERROR;
+            return returnObj;
+        }
 
-    ev.addAttendee(attendee);
-    ev.addAttendee(attendee2);
-
-/*
-    for (int i = 0; i < attributeKeys.size(); i++) {
-        const std::string key = attributeKeys[i];
-        contactFields.append(Json::Value(key));
-        addAttributeKind(contactBuilder, attributeObj[key], key);
+        ev.addAttendee(attendee);
     }
-*/
+
     bbpim::Notification notification;
     notification.setComments(QString("Some comments for you"));
     notification.setNotifyAll(true);
 
     bbpim::CalendarService service;
     service.createEvent(ev, notification);
-
-
 
     if (ev.isValid()) {
         //returnObj = populateContact(newContact, contactFields);

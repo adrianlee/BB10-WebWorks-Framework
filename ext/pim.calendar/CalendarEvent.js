@@ -32,7 +32,8 @@ CalendarEvent = function (properties) {
     this.status = properties && properties.status ? properties.status : "";
     // TODO transparency?
     this.recurrence = properties && properties.recurrence ? properties.recurrence : null;
-    this.reminder = properties && properties.reminder ? properties.reminder : "";    
+    this.reminder = properties && properties.reminder ? properties.reminder : "";
+    this.attendees = properties && properties.attendees ? properties.attendees : [];
 
     var privateId = properties && properties.id ? properties.id : null;
     Object.defineProperty(this, "id", { "value": privateId });
