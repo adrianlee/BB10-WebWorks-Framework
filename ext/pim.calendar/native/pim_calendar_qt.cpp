@@ -15,15 +15,6 @@
  */
 
 #include <json/value.h>
-#include <stdio.h>
-#include <QSet>
-#include <QMap>
-#include <QtAlgorithms>
-#include <string>
-#include <sstream>
-#include <map>
-#include <algorithm>
-
 #include <bb/pim/calendar/CalendarFolder.hpp>
 #include <bb/pim/calendar/Notification.hpp>
 #include <bb/pim/calendar/Recurrence.hpp>
@@ -35,6 +26,15 @@
 #include <bb/pim/account/AccountService.hpp>
 #include <bb/pim/account/Account.hpp>
 #include <bb/pim/account/Service.hpp>
+
+#include <stdio.h>
+#include <QSet>
+#include <QMap>
+#include <QtAlgorithms>
+#include <string>
+#include <sstream>
+#include <map>
+#include <algorithm>
 
 #include "pim_calendar_qt.hpp"
 
@@ -48,7 +48,8 @@ QList<bbpim::SortSpecifier> PimContactsQt::_sortSpecs;
 std::map<bbpim::ContactId, bbpim::Contact> PimContactsQt::_contactSearchMap;
 */
 PimCalendarQt::PimCalendarQt()
-{/*
+{
+/*
     static bool mapInit = false;
 
     if (!mapInit) {
@@ -81,7 +82,7 @@ Json::Value PimCalendarQt::Find(const Json::Value& args)
         fprintf(stderr, "Prefix: %s\n", args["options"]["filter"]["prefix"].asString().c_str());
 
         searchParams.setPrefix(QString(args["options"]["filter"]["prefix"].asString().c_str()));
-        // TODO no results come back unless I specify start and end time
+        // TODO(rtse): no results come back unless I specify start and end time
         searchParams.setStart(QDateTime::fromString("190001010000", "yyyyMMddhhmm"));
         searchParams.setEnd(QDateTime::fromString("204612310000", "yyyyMMddhhmm"));
         searchParams.setDetails(bbpim::DetailLevel::Full);
@@ -244,7 +245,7 @@ Json::Value PimCalendarQt::GetCalendarFolders()
 
 Json::Value PimCalendarQt::GetTimezones()
 {
-    // TODO it always returns an empty list!! even tried running it as root (as unit test)
+    // TODO(rtse): it always returns an empty list!! even tried running it as root (as unit test)
     fprintf(stderr, "%s\n", "PimCalendarQt::GetTimezones!!!");
     bbpim::CalendarService service;
     QList<bbpim::Timezone> timezones = service.timezones();
@@ -279,7 +280,7 @@ Json::Value PimCalendarQt::CreateCalendarEvent(const Json::Value& args)
     ev.setFolderId(1);
     ev.setStartTime(QDateTime::fromString(args["start"].asString().c_str(), "yyyyMMddhhmm"));
     ev.setEndTime(QDateTime::fromString(args["end"].asString().c_str(), "yyyyMMddhhmm"));
-    // TODO timezone
+    // TODO(rtse): timezone
     ev.setSubject(args["summary"].asString().c_str());
     ev.setLocation(args["location"].asString().c_str());
 
