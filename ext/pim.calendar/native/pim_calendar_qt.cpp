@@ -103,13 +103,39 @@ Json::Value PimCalendarQt::Find(const Json::Value& args)
             e["id"] = event.id();
             e["folderId"] = event.folderId();
             e["parentId"] = event.parentId();
+
+            // Reminder can be negative, when an all-day event is created, and reminder is set to "On the day at 9am", reminder=-540 (negative!)
+            // For events with all-day=false, default reminder (in calendar app) is 15 mins before start -> reminder=15:
+            // Tested:
+            // 1 hour before start -> reminder=60
+            // 2 days before start -> reminder=2880
+            // 1 week before start -> reminder=10080
             e["reminder"] = event.reminder();
             e["birthday"] = event.isBirthday();
             e["allDay"] = event.isAllDay();
+
+            // meeting status values:
+            // - 0: not a meeting;
+            // - 1 and 9: is a meeting;
+            // - 3 and 11: meeting received;
+            // - 5 and 13: meeting is canceled;
+            // - 7 and 15: meeting is canceled and received.
             e["status"] = event.meetingStatus();
+
+            // busy status values (BusyStatus::Type)
+            // Free = 0, Used to inform that the event represents free time (the event's owner is available)
+            // Tentative = 1, Tells that an event may or may not happen (the owner may be available).
+            // Busy = 2, Tells that the event is confirmed (the owner is busy).
+            // OutOfOffice = 3, Indicates that the event owner is out of office.
             e["transparency"] = event.busyStatus();
             e["start"] = event.startTime().toString(format).toStdString();
             e["end"] = event.endTime().toString(format).toStdString();
+
+            // sensitivity values (Sensitivity::Type)
+            // Normal = 0, To be used for unrestricted events.
+            // Personal = 1, Sensitivity value for personal events.
+            // Private = 2, Sensitivity level for private events.
+            // Confidential = 3, Maximum sensitivity level for events.
             e["sensitivity"] = event.sensitivity();
             e["timezone"] = event.timezone().toStdString();
             e["summary"] = event.subject().toStdString();
@@ -124,6 +150,12 @@ Json::Value PimCalendarQt::Find(const Json::Value& args)
                 bbpim::Attendee attendee = *j;
                 Json::Value a;
 
+                a["id"] = attendee.id();
+                a["eventId"] = attendee.eventId();
+
+                // contactId is 0 even if contact is on device...maybe it's a permission issue (contact permission not specified in app)
+                // would most likely just leave it out
+                a["contactId"] = attendee.contactId();
                 a["email"] = attendee.email().toStdString();
                 a["name"] = attendee.name().toStdString();
                 a["type"] = attendee.type();

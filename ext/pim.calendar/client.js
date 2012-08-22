@@ -57,6 +57,7 @@ _self.findEvents = function (onFindSuccess, onFindError, findOptions) {
     //}
 
     callback = function (args) {
+        console.log(unescape(args.result));
         var result = JSON.parse(unescape(args.result)),
             events = result.events;//
             //realEvents = [];
