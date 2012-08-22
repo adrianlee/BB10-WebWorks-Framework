@@ -16,7 +16,14 @@
  
 var _self = {},
     _ID = require("./manifest.json").namespace,
-    CalendarEvent = require("./CalendarEvent");
+    CalendarEvent = require("./CalendarEvent"),
+    CalendarError = require("./CalendarError");
+
+function invokeCallback(callback, args) {
+    if (callback && typeof callback === "function") {
+        callback(args);
+    }
+}
 
 _self.create = function (properties) {
     var args = {},
@@ -51,8 +58,8 @@ _self.findEvents = function (onFindSuccess, onFindError, findOptions) {
 
     callback = function (args) {
         var result = JSON.parse(unescape(args.result)),
-            events = result.events,
-            realEvents = [];
+            events = result.events;//
+            //realEvents = [];
 
         if (result._success) {/*
             if (events) {
@@ -63,7 +70,7 @@ _self.findEvents = function (onFindSuccess, onFindError, findOptions) {
             }*/
             onFindSuccess(events/*realContacts*/);
         } else {
-            invokeCallback(onFindError, new ContactError(result.code));
+            invokeCallback(onFindError, new CalendarError(result.code));
         }
     };
 
@@ -78,5 +85,6 @@ _self.findEvents = function (onFindSuccess, onFindError, findOptions) {
 };
 
 _self.CalendarEvent = CalendarEvent;
+_self.CalendarError = CalendarError;
 
 module.exports = _self;

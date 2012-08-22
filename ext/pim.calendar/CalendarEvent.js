@@ -15,7 +15,8 @@
  */
 var CalendarEvent,
     _ID = require("./manifest.json").namespace, // normally 2nd-level require does not work in client side, but manifest has already been required in client.js, so this is ok
-    utils = require("./../../lib/utils");
+    utils = require("./../../lib/utils"),
+    CalendarError = require("./CalendarError");
 
 /**
  * Contains information about a single calendar event.
@@ -78,7 +79,6 @@ CalendarEvent.prototype.save = function (onSaveSuccess, onSaveError) {
 
     saveCallback = function (args) {
         var result = JSON.parse(unescape(args.result)),
-            newContact,
             errorObj;
 
         if (result._success) {
@@ -120,7 +120,7 @@ CalendarEvent.prototype.remove = function (onRemoveSuccess, onRemoveError) {
             }
         } else {
             if (errorCallback) {
-                errorObj = new ContactError(result.code);
+                errorObj = new CalendarError(result.code);
                 errorCallback(errorObj);
             }
         }
