@@ -1,8 +1,12 @@
 cmake_minimum_required(VERSION 2.8)
+
 if (CMAKE_COMPILER_IS_GNUCC)
     set(CMAKE_CXX_FLAGS "-Werror -fexceptions -lang-c++ ${CMAKE_CXX_FLAGS}")
     set(CMAKE_C_FLAGS "-Werror ${CMAKE_C_FLAGS}")
 endif ()
+
+include_directories(${CMAKE_SOURCE_DIR})
+include_directories(${CMAKE_SOURCE_DIR}/dependencies/gmock-1.5.0/fused-src/)
 
 set(srcs
     test_main.cpp
@@ -13,11 +17,8 @@ set(srcs
     ../../../../dependencies/gmock-1.5.0/fused-src/gmock-gtest-all.cc
 )
 
-include_directories(${CMAKE_SOURCE_DIR})
-include_directories(${CMAKE_SOURCE_DIR}/../../../dependencies/gmock-1.5.0/fused-src/)
-
 add_definitions(-DXP_UNIX)
-add_executable(test ${srcs})
+add_executable(pimCalendarTest ${srcs})
 
-target_link_libraries(test m bbpim QtCore QtSql QtXml img)
-set_target_properties(test PROPERTIES PREFIX "")
+target_link_libraries(pimCalendarTest m bbpim QtCore QtSql QtXml img)
+set_target_properties(pimCalendarTest PROPERTIES PREFIX "" OUTPUT_NAME "test")
