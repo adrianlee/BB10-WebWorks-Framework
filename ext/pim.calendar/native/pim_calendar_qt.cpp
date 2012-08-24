@@ -28,6 +28,8 @@
 #include <bb/pim/account/Service.hpp>
 
 #include <stdio.h>
+#include <QFile>
+#include <QTextStream>
 #include <QSet>
 #include <QMap>
 #include <QtAlgorithms>
@@ -277,24 +279,23 @@ Json::Value PimCalendarQt::GetCalendarFolders()
 
 Json::Value PimCalendarQt::GetTimezones()
 {
-    // TODO(rtse): it always returns an empty list!! even tried running it as root (as unit test)
-    fprintf(stderr, "%s\n", "PimCalendarQt::GetTimezones!!!");
-    bbpim::CalendarService service;
-    QList<bbpim::Timezone> timezones = service.timezones();
-    Json::Value timezoneList;
-    fprintf(stderr, "Timezone list empty? %s\n", timezones.empty() ? "true" : "false");
-    for (QList<bbpim::Timezone>::const_iterator i = timezones.constBegin(); i != timezones.constEnd(); i++) {
-        bbpim::Timezone timezone = *i;
-        Json::Value tz;
+    Json::Value results;
 
-        tz["id"] = timezone.id();
-        tz["label"] = timezone.label().toStdString();
-        tz["posixFormat"] = timezone.posixFormat().toStdString();
-        tz["index"] = timezone.index();
-        timezoneList.append(tz);
+    QFile file("/usr/share/zoneinfo/tzvalid");
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        qDebug() << "unable to load list";
+    } else {
+        QTextStream in(&file);
+        while (!in.atEnd()) {
+            QString line = in.readLine();
+            if (line.startsWith("\"")) {
+                line.remove("\"");
+                results.append(line.toStdString());
+            }
+        }
     }
 
-    return timezoneList;
+    return results;
 }
 
 Json::Value PimCalendarQt::CreateCalendarEvent(const Json::Value& args)
