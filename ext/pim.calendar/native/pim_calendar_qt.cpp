@@ -379,7 +379,8 @@ Json::Value PimCalendarQt::CreateCalendarEvent(const Json::Value& args)
     notification.setNotifyAll(true);
 
     bbpim::CalendarService service;
-    service.createEvent(ev, notification);
+    // service.createEvent(ev, notification);
+    service.createEvent(ev);
 
     if (ev.isValid()) {
         //returnObj = populateContact(newContact, contactFields);
