@@ -84,11 +84,12 @@ module.exports = {
     },
 
     getCalendarFolders: function (success, fail, args) {
+/*
         if (!_utils.hasPermission(config, "access_pimdomain_calendars")) {
             success(null);
             return;
         }
-
+*/
         success(pimCalendar.getCalendarFolders());
     },
 

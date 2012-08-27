@@ -68,6 +68,7 @@ public:
     Json::Value GetTimezones();
 
 private:
+    std::string intToStr(const int val);
     bbpim::EventSearchParameters getSearchParams(const Json::Value& args);
 /*
     // Helper functions for Find

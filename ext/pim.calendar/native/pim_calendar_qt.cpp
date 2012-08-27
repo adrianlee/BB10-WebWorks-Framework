@@ -91,10 +91,10 @@ Json::Value PimCalendarQt::Find(const Json::Value& args)
             bbpim::CalendarEvent event = *i;
             Json::Value e;
 
-            e["accountId"] = event.accountId();
-            e["id"] = event.id();
-            e["folderId"] = event.folderId();
-            e["parentId"] = event.parentId();
+            e["accountId"] = intToStr(event.accountId());
+            e["id"] = intToStr(event.id());
+            e["folderId"] = intToStr(event.folderId());
+            e["parentId"] = intToStr(event.parentId());
 
             // Reminder can be negative, when an all-day event is created, and reminder is set to "On the day at 9am", reminder=-540 (negative!)
             // For events with all-day=false, default reminder (in calendar app) is 15 mins before start -> reminder=15:
@@ -142,12 +142,12 @@ Json::Value PimCalendarQt::Find(const Json::Value& args)
                 bbpim::Attendee attendee = *j;
                 Json::Value a;
 
-                a["id"] = attendee.id();
-                a["eventId"] = attendee.eventId();
+                a["id"] = intToStr(attendee.id());
+                a["eventId"] = intToStr(attendee.eventId());
 
                 // contactId is 0 even if contact is on device...maybe it's a permission issue (contact permission not specified in app)
                 // would most likely just leave it out
-                a["contactId"] = attendee.contactId();
+                a["contactId"] = intToStr(attendee.contactId());
                 a["email"] = attendee.email().toStdString();
                 a["name"] = attendee.name().toStdString();
                 a["type"] = attendee.type();
@@ -224,12 +224,15 @@ Json::Value PimCalendarQt::GetCalendarFolders()
         bbpim::CalendarFolder folder = *i;
         Json::Value f;
 
-        f["id"] = Json::Value(folder.id());
-        f["accountId"] = Json::Value(folder.accountId());
-        f["name"] = Json::Value(folder.name().toStdString());
-        f["readonly"] = Json::Value(folder.isReadOnly());
-        f["ownerEmail"] = Json::Value(folder.ownerEmail().toStdString());
-        f["type"] = Json::Value(folder.type());
+        f["id"] = intToStr(folder.id());
+        f["accountId"] = intToStr(folder.accountId());
+        f["name"] = folder.name().toStdString();
+        f["readonly"] = folder.isReadOnly();
+        f["ownerEmail"] = folder.ownerEmail().toStdString();
+        f["type"] = folder.type();
+        f["color"] = QString("%1").arg(folder.color(), 6, 16, QChar('0')).toUpper().toStdString();
+        f["visible"] = folder.isVisible();
+
         folderList.append(f);
     }
 
@@ -439,6 +442,13 @@ Json::Value PimCalendarQt::CloneCalendarEvent(bbpim::CalendarEvent& calEvent, co
 /****************************************************************
  * Helper functions for Find
  ****************************************************************/
+std::string PimCalendarQt::intToStr(const int val) {
+    std::string s;
+    std::stringstream out;
+    out << val;
+    return out.str();
+}
+
 bbpim::EventSearchParameters PimCalendarQt::getSearchParams(const Json::Value& args) {
     bbpim::EventSearchParameters searchParams;
     QDateTime now = QDateTime::currentDateTime();

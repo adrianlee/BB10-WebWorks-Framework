@@ -19,7 +19,8 @@ var _self = {},
     calendarUtils = require("./calendarUtils"),
     CalendarEvent = require("./CalendarEvent"),
     CalendarError = require("./CalendarError"),
-    CalendarFindOptions = require("./CalendarFindOptions");
+    CalendarFindOptions = require("./CalendarFindOptions"),
+    CalendarFolder = require("./CalendarFolder");
 
 function invokeCallback(callback, args) {
     if (callback && typeof callback === "function") {
@@ -68,7 +69,7 @@ function validateFindArguments(onFindSuccess, onFindError, findOptions) {
 
         if (!error && findOptions.filter.folders) {
             findOptions.filter.folders.forEach(function (folder) {
-                if (!folder || !folder.id || !folder.accountId) {
+                if (!folder || !folder.id || isNaN(parseInt(folder.id, 10)) || !folder.accountId || isNaN(folder.accountId, 10)) {
                     error = true;
                 }
             });
@@ -88,8 +89,8 @@ function getFolderKeyList(folders) {
     if (folders && folders.forEach) {
         folders.forEach(function (folder) {
             folderKeys.push({
-                "id": folder.id,
-                "accountId": folder.accountId
+                "id": parseInt(folder.id, 10),
+                "accountId": parseInt(folder.accountId, 10)
             });
         });
     }
@@ -113,7 +114,14 @@ _self.create = function (properties) {
 };
 
 _self.getCalendarFolders = function () {
-    return window.webworks.execSync(_ID, "getCalendarFolders");
+    var obj = window.webworks.execSync(_ID, "getCalendarFolders"),
+        folders = [];
+
+    obj.forEach(function (props) {
+        folders.push(new CalendarFolder(props));
+    });
+
+    return folders;
 };
 
 _self.getTimezones = function () {
@@ -162,6 +170,7 @@ _self.findEvents = function (onFindSuccess, onFindError, findOptions) {
 _self.CalendarEvent = CalendarEvent;
 _self.CalendarError = CalendarError;
 _self.CalendarFindOptions = CalendarFindOptions;
+_self.CalendarFolder = CalendarFolder;
 _self.CalendarEventFilter = require("./CalendarEventFilter");
 
 module.exports = _self;
