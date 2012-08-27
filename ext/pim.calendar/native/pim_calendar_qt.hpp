@@ -68,6 +68,7 @@ public:
     Json::Value GetTimezones();
 
 private:
+    bbpim::EventSearchParameters getSearchParams(const Json::Value& args);
 /*
     // Helper functions for Find
     Json::Value assembleSearchResults(const QSet<bbpim::ContactId>& results, const Json::Value& contactFields, int limit);

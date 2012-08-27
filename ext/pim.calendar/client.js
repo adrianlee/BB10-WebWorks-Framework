@@ -16,13 +16,85 @@
  
 var _self = {},
     _ID = require("./manifest.json").namespace,
+    calendarUtils = require("./calendarUtils"),
     CalendarEvent = require("./CalendarEvent"),
-    CalendarError = require("./CalendarError");
+    CalendarError = require("./CalendarError"),
+    CalendarFindOptions = require("./CalendarFindOptions");
 
 function invokeCallback(callback, args) {
     if (callback && typeof callback === "function") {
         callback(args);
     }
+}
+
+function validateFindArguments(onFindSuccess, onFindError, findOptions) {
+    var error = false;
+
+    if (!onFindSuccess || typeof onFindSuccess !== "function" || !findOptions || typeof findOptions.limit !== "number" ||
+        !findOptions.filter || !findOptions.filter.prefix || typeof findOptions.filter.prefix !== "string") {
+        error = true;
+    } else {
+        switch (findOptions.detail) {
+        case CalendarFindOptions.DETAIL_MONTHLY:
+        case CalendarFindOptions.DETAIL_WEEKLY:
+        case CalendarFindOptions.DETAIL_FULL:
+        case CalendarFindOptions.DETAIL_AGENDA:
+            break;
+        default:
+            error = true;
+        }
+
+        if (!error && findOptions.sort && findOptions.sort.forEach) {
+            findOptions.sort.forEach(function (s) {
+                switch (s.fieldName) {
+                case CalendarFindOptions.SORT_FIELD_GUID:
+                case CalendarFindOptions.SORT_FIELD_SUMMARY:
+                case CalendarFindOptions.SORT_FIELD_LOCATION:
+                case CalendarFindOptions.SORT_FIELD_START:
+                case CalendarFindOptions.SORT_FIELD_END:
+                    break;
+                default:
+                    error = true;
+                }
+
+                if (s.desc === undefined || typeof s.desc !== "boolean") {
+                    error = true;
+                }
+            });
+        }
+
+        error = error ? error : findOptions.filter.start && !calendarUtils.isDate(findOptions.filter.start);
+        error = error ? error : findOptions.filter.end && !calendarUtils.isDate(findOptions.filter.end);
+
+        if (!error && findOptions.filter.folders) {
+            findOptions.filter.folders.forEach(function (folder) {
+                if (!folder || !folder.id || !folder.accountId) {
+                    error = true;
+                }
+            });
+        }
+    }
+
+    if (error) {
+        invokeCallback(onFindError, new CalendarError(CalendarError.INVALID_ARGUMENT_ERROR));
+    }
+
+    return !error;
+}
+
+function getFolderKeyList(folders) {
+    var folderKeys = [];
+
+    if (folders && folders.forEach) {
+        folders.forEach(function (folder) {
+            folderKeys.push({
+                "id": folder.id,
+                "accountId": folder.accountId
+            });
+        });
+    }
+
+    return folderKeys;
 }
 
 _self.create = function (properties) {
@@ -52,9 +124,11 @@ _self.findEvents = function (onFindSuccess, onFindError, findOptions) {
     var callback,
         eventId;
 
-    //if (!validateFindArguments(onFindSuccess, onFindError, findOptions)) {
-      //  return;
-    //}
+    if (!validateFindArguments(onFindSuccess, onFindError, findOptions)) {
+        return;
+    }
+
+    findOptions.filter.folders = getFolderKeyList(findOptions.filter.folders);
 
     callback = function (args) {
         console.log(unescape(args.result));
@@ -87,5 +161,7 @@ _self.findEvents = function (onFindSuccess, onFindError, findOptions) {
 
 _self.CalendarEvent = CalendarEvent;
 _self.CalendarError = CalendarError;
+_self.CalendarFindOptions = CalendarFindOptions;
+_self.CalendarEventFilter = require("./CalendarEventFilter");
 
 module.exports = _self;

@@ -15,21 +15,23 @@
  */
 
 #include <json/value.h>
-#include <bb/pim/calendar/CalendarFolder.hpp>
-#include <bb/pim/calendar/Notification.hpp>
-#include <bb/pim/calendar/Recurrence.hpp>
-#include <bb/pim/calendar/Frequency.hpp>
-#include <bb/pim/calendar/Attendee.hpp>
-#include <bb/pim/calendar/AttendeeRole.hpp>
-#include <bb/pim/calendar/EventSearchParameters.hpp>
-#include <bb/pim/calendar/Timezone.hpp>
-#include <bb/pim/account/AccountService.hpp>
-#include <bb/pim/account/Account.hpp>
-#include <bb/pim/account/Service.hpp>
+#include <bb/pim/calendar/CalendarFolder>
+#include <bb/pim/calendar/Notification>
+#include <bb/pim/calendar/Recurrence>
+#include <bb/pim/calendar/Frequency>
+#include <bb/pim/calendar/Attendee>
+#include <bb/pim/calendar/AttendeeRole>
+#include <bb/pim/calendar/EventSearchParameters>
+#include <bb/pim/calendar/SortField>
+#include <bb/pim/calendar/FolderKey>
+#include <bb/pim/account/AccountService>
+#include <bb/pim/account/Account>
+#include <bb/pim/account/Service>
 
 #include <stdio.h>
 #include <QFile>
 #include <QTextStream>
+#include <QPair>
 #include <QSet>
 #include <QMap>
 #include <QtAlgorithms>
@@ -75,27 +77,15 @@ PimCalendarQt::~PimCalendarQt()
 Json::Value PimCalendarQt::Find(const Json::Value& args)
 {
     Json::Value returnObj;
+    // TODO(rtse): must escape double quotes and other problematic characters otherwise there might be problems with JSON parsing
 
     if (args.isMember("options") && args["options"].isMember("filter") && !args["options"]["filter"].isNull()) {
-        fprintf(stderr, "%s\n", "::Find, I am inside if");
-
-        bbpim::EventSearchParameters searchParams;
-
-        fprintf(stderr, "Prefix: %s\n", args["options"]["filter"]["prefix"].asString().c_str());
-
-        searchParams.setPrefix(QString(args["options"]["filter"]["prefix"].asString().c_str()));
-        // TODO(rtse): no results come back unless I specify start and end time
-        searchParams.setStart(QDateTime::fromString("190001010000", "yyyyMMddhhmm"));
-        searchParams.setEnd(QDateTime::fromString("204612310000", "yyyyMMddhhmm"));
-        searchParams.setDetails(bbpim::DetailLevel::Full);
-
+        bbpim::EventSearchParameters searchParams = getSearchParams(args["options"]);
         bbpim::CalendarService service;
         QList<bbpim::CalendarEvent> events = service.events(searchParams);
 
         Json::Value results;
         QString format = "yyyy-MM-dd hh:mm:ss";
-
-        fprintf(stderr, "Search results empty? %s\n", events.empty() ? "true" : "false");
 
         for (QList<bbpim::CalendarEvent>::const_iterator i = events.constBegin(); i != events.constEnd(); i++) {
             bbpim::CalendarEvent event = *i;
@@ -192,37 +182,6 @@ Json::Value PimCalendarQt::Find(const Json::Value& args)
     }
 
     return returnObj;
-/*
-    Json::Value returnObj;
-
-    if (!args.isMember("fields") || args["fields"].empty() || !args.isMember("options") || args["options"].isNull() ||
-        !args["options"].isMember("filter") || args["options"]["filter"].empty()) {
-        returnObj["_success"] = false;
-        returnObj["code"] = INVALID_ARGUMENT_ERROR;
-        return returnObj;
-    }
-
-    QSet<bbpim::ContactId> results;
-    int limit = -1;
-    bool favorite = false;
-
-    if (args["options"].isMember("favorite") && args["options"]["favorite"].isBool()) {
-        favorite = args["options"]["favorite"].asBool();
-    }
-
-    if (args["options"].isMember("limit") && args["options"]["limit"].isInt()) {
-        limit = args["options"]["limit"].asInt();
-    }
-
-    results = getPartialSearchResults(args["options"]["filter"], args["fields"], favorite);
-
-    getSortSpecs(args["options"]["sort"]);
-
-    returnObj["_success"] = true;
-    returnObj["contacts"] = assembleSearchResults(results, args["fields"], limit);
-
-    return returnObj;
-*/
 }
 
 Json::Value PimCalendarQt::Save(const Json::Value& attributeObj)
@@ -480,6 +439,71 @@ Json::Value PimCalendarQt::CloneCalendarEvent(bbpim::CalendarEvent& calEvent, co
 /****************************************************************
  * Helper functions for Find
  ****************************************************************/
+bbpim::EventSearchParameters PimCalendarQt::getSearchParams(const Json::Value& args) {
+    bbpim::EventSearchParameters searchParams;
+    QDateTime now = QDateTime::currentDateTime();
+
+    // filter - prefix
+    searchParams.setPrefix(QString(args["filter"]["prefix"].asCString()));
+
+    // filter - start
+    if (!args["filter"]["start"].empty()) {
+        searchParams.setStart(QDateTime::fromString(args["filter"]["start"].asCString(), Qt::ISODate));
+    } else {
+        searchParams.setStart(now.addYears(-100));
+    }
+
+    // filter - end
+    if (!args["filter"]["end"].empty()) {
+        searchParams.setEnd(QDateTime::fromString(args["filter"]["end"].asCString(), Qt::ISODate));
+    } else {
+        searchParams.setEnd(now.addYears(100));
+    }
+
+    // filter - expand recurring
+    searchParams.setExpand(args["filter"]["expandRecurring"].asBool());
+
+    // filter - folders
+    if (!args["filter"]["folders"].empty()) {
+        for (int i = 0; i < args["filter"]["folders"].size(); i++) {
+            Json::Value folder = args["filter"]["folders"][i];
+            bbpim::FolderKey folderKey;
+
+            folderKey.setFolderId(folder["id"].asInt());
+            folderKey.setAccountId(folder["accountId"].asInt());
+
+            searchParams.addFolder(folderKey);
+        }
+    }
+
+    // detail
+    searchParams.setDetails((bbpim::DetailLevel::Type) args["detail"].asInt());
+
+    // sort
+    if (!args["sort"].empty()) {
+        QList<QPair<bbpim::SortField::Type, bool > > sortSpecsList;
+
+        for (int i = 0; i < args["sort"].size(); i++) {
+            Json::Value sort = args["sort"][i];
+            QPair<bbpim::SortField::Type, bool> sortSpec;
+
+            sortSpec.first = (bbpim::SortField::Type) sort["fieldName"].asInt();
+            sortSpec.second = !sort["desc"].asBool();
+
+            sortSpecsList.append(sortSpec);
+        }
+
+        searchParams.setSort(sortSpecsList);
+    }
+
+    // limit
+    if (!args["limit"].asInt() > 0) {
+        searchParams.setLimit(args["limit"].asInt());
+    }
+
+    return searchParams;
+}
+
 /*
 QList<bbpim::SearchField::Type> PimContactsQt::getSearchFields(const Json::Value& searchFieldsJson)
 {
