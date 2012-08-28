@@ -114,7 +114,6 @@ CalendarEvent.prototype.save = function (onSaveSuccess, onSaveError) {
         args.parentId = window.parseInt(this.parentId);
     }
 
-
     args._eventId = utils.guid();
 
     saveCallback = function (args) {

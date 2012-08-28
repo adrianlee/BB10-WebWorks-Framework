@@ -39,6 +39,7 @@
 #include <sstream>
 #include <map>
 #include <algorithm>
+#include <qDebug>
 
 #include "pim_calendar_qt.hpp"
 
@@ -122,8 +123,10 @@ Json::Value PimCalendarQt::Find(const Json::Value& args)
             // Busy = 2, Tells that the event is confirmed (the owner is busy).
             // OutOfOffice = 3, Indicates that the event owner is out of office.
             e["transparency"] = event.busyStatus();
-            e["start"] = event.startTime().toString(format).toStdString();
-            e["end"] = event.endTime().toString(format).toStdString();
+            // e["start"] = event.startTime().toString(format).toStdString();
+            // e["end"] = event.endTime().toString(format).toStdString();
+            e["start"] = QString::number(event.startTime().toUTC().toMSecsSinceEpoch()).toStdString();
+            e["end"] = QString::number(event.endTime().toUTC().toMSecsSinceEpoch()).toStdString();
 
             // sensitivity values (Sensitivity::Type)
             // Normal = 0, To be used for unrestricted events.
@@ -189,26 +192,28 @@ Json::Value PimCalendarQt::Find(const Json::Value& args)
 
 Json::Value PimCalendarQt::Save(const Json::Value& attributeObj)
 {
+    bbpim::CalendarService service;
+
     if (!attributeObj.isMember("id") || attributeObj["id"].isNull()) {
         return CreateCalendarEvent(attributeObj);
     } else if (attributeObj.isMember("id") && attributeObj["id"].isInt()) {
-        /*
-        int contactId = attributeObj["id"].asInt();
-        bbpim::ContactService service;
+        int eventId = attributeObj["id"].asInt();
+        int accountId = attributeObj["accountId"].asInt();
 
-        if (contactId > 0) {
-            bbpim::Contact contact = service.contactDetails(contactId);
+        if (accountId > 0 && eventId > 0) {
+            bbpim::CalendarEvent event = service.event(accountId, eventId);
 
-            if (contact.isValid()) {
-                return EditContact(contact, attributeObj);
+            if (event.isValid()) {
+                qDebug() << "!!! OKAY EVENT IS VALID";
+                return EditCalendarEvent(event, attributeObj);
             }
         } else {
-            bbpim::Contact contact = service.contactDetails(contactId * -1);
+            // bbpim::Contact contact = service.contactDetails(contactId * -1);
 
-            if (contact.isValid()) {
-                return CloneContact(contact, attributeObj);
-            }
-        }*/
+            // if (contact.isValid()) {
+            //     return CloneContact(contact, attributeObj);
+            // }
+        }
     }
 
     Json::Value returnObj;
@@ -387,34 +392,92 @@ Json::Value PimCalendarQt::DeleteCalendarEvent(const Json::Value& calEventObj)
 
 Json::Value PimCalendarQt::EditCalendarEvent(bbpim::CalendarEvent& calEvent, const Json::Value& attributeObj)
 {
-    bbpim::CalendarService service;
-    service.updateEvent(calEvent, bbpim::Notification());
-
-    /*
-    bbpim::ContactBuilder contactBuilder(contact.edit());
     const Json::Value::Members attributeKeys = attributeObj.getMemberNames();
-    Json::Value contactFields;
+    Json::Value eventFields;
 
     for (int i = 0; i < attributeKeys.size(); i++) {
         const std::string key = attributeKeys[i];
-        contactFields.append(Json::Value(key));
-        syncAttributeKind(contact, attributeObj[key], key);
+        // eventFields.append(Json::Value(key));
+        // syncAttributeKind(contact, attributeObj[key], key);
+        if (key == "birthday") {
+            calEvent.setBirthday(attributeObj[key].asBool());
+        }
+
+        if (key == "start") {
+            // TODO add time
+            QDateTime date = QDateTime::fromString(QString(attributeObj[key].asString().c_str()), QString("ddd MMM dd yyyy"));
+            calEvent.setStartTime(date);
+        }
+
+        if (key == "end") {
+            // TODO add time
+            QDateTime date = QDateTime::fromString(QString(attributeObj[key].asString().c_str()), QString("ddd MMM dd yyyy"));
+            calEvent.setEndTime(date);
+        }
+
+        if (key == "description") {
+            calEvent.setSubject(QString::fromStdString(attributeObj[key].asString()));
+        }
+
+        if (key == "summary") {
+            calEvent.setBody(QString::fromStdString(attributeObj[key].asString()));
+        }
+
+        if (key == "location") {
+            calEvent.setLocation(QString::fromStdString(attributeObj[key].asString()));
+        }
+
+        if (key == "timezone") {
+            calEvent.setTimezone(QString::fromStdString(attributeObj[key].asString()));
+        }
+
+        if (key == "reminder") {
+            calEvent.setReminder(attributeObj[key].asInt());
+        }
+
+        if (key == "status") {
+            calEvent.setMeetingStatus(attributeObj[key].asInt());
+        }
+
+        if (key == "timezone") {
+            calEvent.setTimezone(QString::fromStdString(attributeObj[key].asString()));
+        }
+
+        if (key == "sensitivity") {
+            // TODO Sensitivity Type Enum
+            // calEvent.setSensitivity();
+        }
+
+        if (key == "transparency") {
+            /// TODO BusyStatus::Type
+            // calEvent.setBusyStatus();
+        }
+
+        if (key == "attendees") {
+            // TODO convert attributeObj[key] to QList<Attendee>
+            QList<bbpim::Attendee> attendees;
+            // calEvent.setAttendees(attendees);
+        }
+
+        if (key == "recurrence") {
+            // TODO Recurrence
+            // calEvent.setRecurrence();
+        }
     }
 
-    bbpim::ContactService service;
-    contact = service.updateContact(contact);
+    bbpim::CalendarService service;
+    service.updateEvent(calEvent, bbpim::Notification());
 
     Json::Value returnObj;
 
-    if (contact.isValid()) {
-        returnObj = populateContact(contact, contactFields);
-        returnObj["_success"] = true;
-    } else {
-        returnObj["_success"] = false;
-        returnObj["code"] = UNKNOWN_ERROR;
-    }
-    */
-    Json::Value returnObj;
+    // if (contact.isValid()) {
+    //     returnObj = populateContact(contact, eventFields);
+    //     returnObj["_success"] = true;
+    // } else {
+    //     returnObj["_success"] = false;
+    //     returnObj["code"] = UNKNOWN_ERROR;
+    // }
+    // Json::Value returnObj;
     return returnObj;
 }
 
