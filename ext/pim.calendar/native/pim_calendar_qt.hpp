@@ -69,7 +69,7 @@ public:
 
 private:
     std::string intToStr(const int val);
-    bbpim::EventSearchParameters getSearchParams(const Json::Value& args);
+    bool getSearchParams(bbpim::EventSearchParameters& searchParams, const Json::Value& args);
 /*
     // Helper functions for Find
     Json::Value assembleSearchResults(const QSet<bbpim::ContactId>& results, const Json::Value& contactFields, int limit);

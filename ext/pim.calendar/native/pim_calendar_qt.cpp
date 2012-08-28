@@ -77,10 +77,12 @@ PimCalendarQt::~PimCalendarQt()
 Json::Value PimCalendarQt::Find(const Json::Value& args)
 {
     Json::Value returnObj;
+    bbpim::EventSearchParameters searchParams;
+    bool isParamsValid = getSearchParams(searchParams, args);
+
     // TODO(rtse): must escape double quotes and other problematic characters otherwise there might be problems with JSON parsing
 
-    if (args.isMember("options") && args["options"].isMember("filter") && !args["options"]["filter"].isNull()) {
-        bbpim::EventSearchParameters searchParams = getSearchParams(args["options"]);
+    if (isParamsValid) {
         bbpim::CalendarService service;
         QList<bbpim::CalendarEvent> events = service.events(searchParams);
 
@@ -179,6 +181,7 @@ Json::Value PimCalendarQt::Find(const Json::Value& args)
         returnObj["events"] = results;
     } else {
         returnObj["_success"] = false;
+        returnObj["code"] = INVALID_ARGUMENT_ERROR;
     }
 
     return returnObj;
@@ -449,69 +452,84 @@ std::string PimCalendarQt::intToStr(const int val) {
     return out.str();
 }
 
-bbpim::EventSearchParameters PimCalendarQt::getSearchParams(const Json::Value& args) {
-    bbpim::EventSearchParameters searchParams;
-    QDateTime now = QDateTime::currentDateTime();
+bool PimCalendarQt::getSearchParams(bbpim::EventSearchParameters& searchParams, const Json::Value& args) {
+    if (args.isMember("options") && args["options"].isMember("filter") && !args["options"]["filter"].isNull()) {
+        Json::Value options = args["options"];
+        Json::Value filter = options["filter"];
+        QDateTime now = QDateTime::currentDateTime();
 
-    // filter - prefix
-    searchParams.setPrefix(QString(args["filter"]["prefix"].asCString()));
-
-    // filter - start
-    if (!args["filter"]["start"].empty()) {
-        searchParams.setStart(QDateTime::fromString(args["filter"]["start"].asCString(), Qt::ISODate));
-    } else {
-        searchParams.setStart(now.addYears(-100));
-    }
-
-    // filter - end
-    if (!args["filter"]["end"].empty()) {
-        searchParams.setEnd(QDateTime::fromString(args["filter"]["end"].asCString(), Qt::ISODate));
-    } else {
-        searchParams.setEnd(now.addYears(100));
-    }
-
-    // filter - expand recurring
-    searchParams.setExpand(args["filter"]["expandRecurring"].asBool());
-
-    // filter - folders
-    if (!args["filter"]["folders"].empty()) {
-        for (int i = 0; i < args["filter"]["folders"].size(); i++) {
-            Json::Value folder = args["filter"]["folders"][i];
-            bbpim::FolderKey folderKey;
-
-            folderKey.setFolderId(folder["id"].asInt());
-            folderKey.setAccountId(folder["accountId"].asInt());
-
-            searchParams.addFolder(folderKey);
-        }
-    }
-
-    // detail
-    searchParams.setDetails((bbpim::DetailLevel::Type) args["detail"].asInt());
-
-    // sort
-    if (!args["sort"].empty()) {
-        QList<QPair<bbpim::SortField::Type, bool > > sortSpecsList;
-
-        for (int i = 0; i < args["sort"].size(); i++) {
-            Json::Value sort = args["sort"][i];
-            QPair<bbpim::SortField::Type, bool> sortSpec;
-
-            sortSpec.first = (bbpim::SortField::Type) sort["fieldName"].asInt();
-            sortSpec.second = !sort["desc"].asBool();
-
-            sortSpecsList.append(sortSpec);
+        // filter - prefix - mandatory
+        if (filter.isMember("prefix") && filter["prefix"].isString()) {
+            searchParams.setPrefix(QString(filter["prefix"].asCString()));
+        } else {
+            return false;
         }
 
-        searchParams.setSort(sortSpecsList);
+        // detail - mandatory
+        if (options.isMember("detail") && options["detail"].isInt()) {
+            searchParams.setDetails((bbpim::DetailLevel::Type) options["detail"].asInt());
+        } else {
+            return false;
+        }
+
+        // filter - start - optional
+        if (!filter["start"].empty()) {
+            searchParams.setStart(QDateTime::fromString(filter["start"].asCString(), Qt::ISODate));
+        } else {
+            searchParams.setStart(now.addYears(-100));
+        }
+
+        // filter - end - optional
+        if (!filter["end"].empty()) {
+            searchParams.setEnd(QDateTime::fromString(filter["end"].asCString(), Qt::ISODate));
+        } else {
+            searchParams.setEnd(now.addYears(100));
+        }
+
+        // filter - expand recurring - optional
+        if (!filter["expandRecurring"].empty() && filter["expandRecurring"].isBool()) {
+            searchParams.setExpand(filter["expandRecurring"].asBool());
+        }
+
+        // filter - folders - optional
+        if (!filter["folders"].empty()) {
+            for (int i = 0; i < filter["folders"].size(); i++) {
+                Json::Value folder = filter["folders"][i];
+                bbpim::FolderKey folderKey;
+
+                folderKey.setFolderId(folder["id"].asInt());
+                folderKey.setAccountId(folder["accountId"].asInt());
+
+                searchParams.addFolder(folderKey);
+            }
+        }
+
+        // sort - optional
+        if (!options["sort"].empty() && options["sort"].isArray()) {
+            QList<QPair<bbpim::SortField::Type, bool > > sortSpecsList;
+
+            for (int i = 0; i < options["sort"].size(); i++) {
+                Json::Value sort = options["sort"][i];
+                QPair<bbpim::SortField::Type, bool> sortSpec;
+
+                sortSpec.first = (bbpim::SortField::Type) sort["fieldName"].asInt();
+                sortSpec.second = !sort["desc"].asBool();
+
+                sortSpecsList.append(sortSpec);
+            }
+
+            searchParams.setSort(sortSpecsList);
+        }
+
+        // limit - optional
+        if (!options["limit"].empty() && options["limit"].isInt() && !options["limit"].asInt() > 0) {
+            searchParams.setLimit(options["limit"].asInt());
+        }
+
+        return true;
     }
 
-    // limit
-    if (!args["limit"].asInt() > 0) {
-        searchParams.setLimit(args["limit"].asInt());
-    }
-
-    return searchParams;
+    return false;
 }
 
 /*
