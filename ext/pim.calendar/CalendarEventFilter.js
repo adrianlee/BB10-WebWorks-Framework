@@ -19,7 +19,7 @@ var CalenderEventFilter = function (prefix, folders, start, end, expandRecurring
     this.folders = folders || null;
     this.start = start || null;
     this.end = end || null;
-    this.expandRecurring = this.expandRecurring || false;
+    this.expandRecurring = expandRecurring || false;
 };
 
 module.exports = CalenderEventFilter;

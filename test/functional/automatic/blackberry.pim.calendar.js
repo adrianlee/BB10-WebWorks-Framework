@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
- var cal,
-     CalendarEvent,
-     CalendarFolder,
-     CalendarFindOptions,
-     CalendarEventFilter,
-     CalendarError;
-     // Attendee
-     // CalendarRepeatRule
+var cal,
+    CalendarEvent,
+    CalendarFolder,
+    CalendarFindOptions,
+    CalendarEventFilter,
+    CalendarError;
+    // Attendee
+    // CalendarRepeatRule
 
 function testReadOnly(object, property) {
     var oldValue = object[property];
@@ -96,6 +96,117 @@ describe("blackberry.pim.calendar", function () {
             testReadOnly(CalendarError, "IO_ERROR");
             testReadOnly(CalendarError, "NOT_SUPPORTED_ERROR");
             testReadOnly(CalendarError, "PERMISSION_DENIED_ERROR");
+        });
+    });
+
+    describe("Child objects creation", function () {
+        it('Can create blackberry.pim.calendar.CalendarEventFilter object', function () {
+            var start = new Date(),
+                end = new Date(),
+                filter = new CalendarEventFilter("abc", null, start, end, true);
+
+            expect(filter).toBeDefined();
+            expect(filter.prefix).toBe("abc");
+            expect(filter.folders).toBe(null);
+            expect(filter.start).toBe(start);
+            expect(filter.end).toBe(end);
+            expect(filter.expandRecurring).toBe(true);
+        });
+
+        it('Can create blackberry.pim.calendar.CalendarFindOptions object', function () {
+            var filter = new CalendarEventFilter("abc", null, new Date(), new Date(), true),
+                sort = [{
+                    "fieldName": CalendarFindOptions.SORT_FIELD_START,
+                    "desc": false
+                }],
+                detail = CalendarFindOptions.DETAIL_FULL,
+                limit = 5,
+                options = new CalendarFindOptions(filter, sort, detail, limit);
+
+            expect(options).toBeDefined();
+            expect(options.filter.prefix).toBe("abc");
+            expect(options.filter.folders).toBe(null);
+            expect(options.filter.expandRecurring).toBe(true);
+            expect(options.sort.length).toBe(1);
+            expect(options.sort).toContain({
+                "fieldName": CalendarFindOptions.SORT_FIELD_START,
+                "desc": false
+            });
+            expect(options.detail).toBe(detail);
+            expect(options.limit).toBe(5);
+        });
+    });
+
+    describe("blackberry.pim.calendar.getTimezones", function () {
+        it('returns the list of all supported timezones', function () {
+            var timezones = cal.getTimezones();
+
+            expect(timezones).toBeDefined();
+            expect(timezones).toContain("America/New_York");
+            expect(timezones).toContain("America/Los_Angeles");
+        });
+    });
+
+    describe("blackberry.pim.calendar.getCalendarFolders", function () {
+        it('returns at least the Home calendar', function () {
+            var folders = cal.getCalendarFolders(),
+                homeFolderFound;
+
+            expect(folders).toBeDefined();
+            expect(folders.length).toBeGreaterThan(0);
+
+            homeFolderFound = folders.reduce(function (found, f, index) {
+                return found || f.name === "Home";
+            }, false);
+
+            expect(homeFolderFound).toBeTruthy();
+        });
+    });
+
+    describe("blackberry.pim.calendar.findEvents", function () {
+        it('invoke error callback with invalid arguments error if find options is not specified', function () {
+            var successCb = jasmine.createSpy(),
+                errorCb = jasmine.createSpy();
+
+            cal.findEvents(successCb, errorCb);
+
+            expect(errorCb).toHaveBeenCalledWith(new CalendarError(CalendarError.INVALID_ARGUMENT_ERROR));
+            expect(successCb).not.toHaveBeenCalled();
+        });
+
+        it('invoke error callback with invalid arguments error if find options does not have filter', function () {
+            var successCb = jasmine.createSpy(),
+                errorCb = jasmine.createSpy(),
+                findOptions = new CalendarFindOptions(null, null, CalendarFindOptions.DETAIL_FULL, 5);
+
+            cal.findEvents(successCb, errorCb, findOptions);
+
+            expect(errorCb).toHaveBeenCalledWith(new CalendarError(CalendarError.INVALID_ARGUMENT_ERROR));
+            expect(successCb).not.toHaveBeenCalled();
+        });
+
+        it('invoke error callback with invalid arguments error if find options filter does not have prefix', function () {
+            var successCb = jasmine.createSpy(),
+                errorCb = jasmine.createSpy(),
+                filter = new CalendarEventFilter("", null, null, null, false),
+                findOptions = new CalendarFindOptions(filter, null, CalendarFindOptions.DETAIL_FULL, 5);
+
+            cal.findEvents(successCb, errorCb, findOptions);
+
+            expect(errorCb).toHaveBeenCalledWith(new CalendarError(CalendarError.INVALID_ARGUMENT_ERROR));
+            expect(successCb).not.toHaveBeenCalled();
+        });
+
+        it('invoke error callback with invalid arguments error if find options has invalid detail level', function () {
+            var successCb = jasmine.createSpy(),
+                errorCb = jasmine.createSpy(),
+                filter = new CalendarEventFilter("abc", null, null, null, false),
+                findOptions = new CalendarFindOptions(filter, null, -890, 5);
+
+            cal.findEvents(successCb, errorCb, findOptions);
+
+            expect(errorCb).toHaveBeenCalledWith(new CalendarError(CalendarError.INVALID_ARGUMENT_ERROR));
+            expect(successCb).not.toHaveBeenCalled();
         });
     });
 });
