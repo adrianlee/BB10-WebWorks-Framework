@@ -96,6 +96,7 @@ Json::Value PimCalendarQt::Find(const Json::Value& args)
 
             e["accountId"] = intToStr(event.accountId());
             e["id"] = intToStr(event.id());
+            e["folder"] = getCalendarFolderByFolderKey(event.accountId(), event.folderId());
             e["folderId"] = intToStr(event.folderId());
             e["parentId"] = intToStr(event.parentId());
 
@@ -229,19 +230,7 @@ Json::Value PimCalendarQt::GetCalendarFolders()
     Json::Value folderList;
 
     for (QList<bbpim::CalendarFolder>::const_iterator i = folders.constBegin(); i != folders.constEnd(); i++) {
-        bbpim::CalendarFolder folder = *i;
-        Json::Value f;
-
-        f["id"] = intToStr(folder.id());
-        f["accountId"] = intToStr(folder.accountId());
-        f["name"] = folder.name().toStdString();
-        f["readonly"] = folder.isReadOnly();
-        f["ownerEmail"] = folder.ownerEmail().toStdString();
-        f["type"] = folder.type();
-        f["color"] = QString("%1").arg(folder.color(), 6, 16, QChar('0')).toUpper().toStdString();
-        f["visible"] = folder.isVisible();
-
-        folderList.append(f);
+        folderList.append(getCalendarFolderJson(*i));
     }
 
     return folderList;
@@ -514,6 +503,39 @@ std::string PimCalendarQt::intToStr(const int val) {
     out << val;
     return out.str();
 }
+
+Json::Value PimCalendarQt::getCalendarFolderByFolderKey(bbpim::AccountId accountId, bbpim::FolderId folderId) {
+    // TODO(rtse): cache folder for each search operation so that each find only needs to look up folder once,
+    // not for every event found in the folder
+    bbpim::CalendarService service;
+    QList<bbpim::CalendarFolder> folders = service.folders();
+
+    for (QList<bbpim::CalendarFolder>::const_iterator i = folders.constBegin(); i != folders.constEnd(); i++) {
+        bbpim::CalendarFolder folder = *i;
+
+        if (folder.accountId() == accountId && folder.id() == folderId) {
+            return getCalendarFolderJson(folder);
+        }
+    }
+
+    return Json::Value();
+}
+
+Json::Value PimCalendarQt::getCalendarFolderJson(const bbpim::CalendarFolder& folder) {
+    Json::Value f;
+
+    f["id"] = intToStr(folder.id());
+    f["accountId"] = intToStr(folder.accountId());
+    f["name"] = folder.name().toStdString();
+    f["readonly"] = folder.isReadOnly();
+    f["ownerEmail"] = folder.ownerEmail().toStdString();
+    f["type"] = folder.type();
+    f["color"] = QString("%1").arg(folder.color(), 6, 16, QChar('0')).toUpper().toStdString();
+    f["visible"] = folder.isVisible();
+
+    return f;
+}
+
 
 bool PimCalendarQt::getSearchParams(bbpim::EventSearchParameters& searchParams, const Json::Value& args) {
     if (args.isMember("options") && args["options"].isMember("filter") && !args["options"]["filter"].isNull()) {

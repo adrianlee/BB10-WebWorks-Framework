@@ -70,6 +70,8 @@ public:
 private:
     std::string intToStr(const int val);
     bool getSearchParams(bbpim::EventSearchParameters& searchParams, const Json::Value& args);
+    Json::Value getCalendarFolderByFolderKey(bbpim::AccountId accountId, bbpim::FolderId folderId);
+    Json::Value getCalendarFolderJson(const bbpim::CalendarFolder& folder);
 /*
     // Helper functions for Find
     Json::Value assembleSearchResults(const QSet<bbpim::ContactId>& results, const Json::Value& contactFields, int limit);

@@ -43,6 +43,7 @@ CalendarEvent = function (properties) {
     this.summary = properties && properties.summary !== undefined ? properties.summary : "";
     this.timezone = properties && properties.timezone !== undefined ? properties.timezone : "";
     this.transparency = properties && properties.transparency !== undefined ? properties.transparency : "";
+    this.folder = properties && properties.folder !== undefined ? properties.folder : null;
 
     privateId = properties && properties.id !== undefined ? properties.id : null;
     privateAccountId = properties && properties.accountId !== undefined ? properties.accountId : null;

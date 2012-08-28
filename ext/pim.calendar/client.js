@@ -16,6 +16,7 @@
 
 var _self = {},
     _ID = require("./manifest.json").namespace,
+    utils = require("./../../lib/utils"),
     calendarUtils = require("./calendarUtils"),
     CalendarEvent = require("./CalendarEvent"),
     CalendarError = require("./CalendarError"),
@@ -158,7 +159,7 @@ _self.findEvents = function (onFindSuccess, onFindError, findOptions) {
         }
     };
 
-    eventId = "tempId.find"; //utils.guid();
+    eventId = utils.guid();
 
     window.webworks.event.once(_ID, eventId, callback);
 
