@@ -103,7 +103,7 @@ module.exports = {
 ///////////////////////////////////////////////////////////////////
 
 JNEXT.PimCalendar = function ()
-{   
+{
     var self = this;
 
     self.find = function (args) {
@@ -143,25 +143,25 @@ JNEXT.PimCalendar = function ()
         }
 
         self.m_id = JNEXT.createObject("pimCalendar.PimCalendar");
-        
+
         if (self.m_id === "") {
             return false;
         }
 
         JNEXT.registerEvents(self);
     };
-   
+
     self.onEvent = function (strData) {
         var arData = strData.split(" "),
             strEventDesc = arData[0],
             args = {};
-            
+
         if (strEventDesc === "result") {
             args.result = escape(strData.split(" ").slice(2).join(" "));
             _event.trigger(arData[1], args);
         }
     };
-    
+
     self.m_id = "";
 
     self.init();

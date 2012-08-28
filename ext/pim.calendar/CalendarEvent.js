@@ -24,19 +24,34 @@ var CalendarEvent,
  * @param properties
  */
 CalendarEvent = function (properties) {
-    this.description = properties && properties.description ? properties.description : "";
-    this.location = properties && properties.location ? properties.location : "";
-    this.summary = properties && properties.summary ? properties.summary : "";
-    this.start = properties && properties.start ? properties.start : null;
-    this.end = properties && properties.end ? properties.end : null;
-    this.status = properties && properties.status ? properties.status : "";
-    // TODO transparency?
-    this.recurrence = properties && properties.recurrence ? properties.recurrence : null;
-    this.reminder = properties && properties.reminder ? properties.reminder : "";
-    this.attendees = properties && properties.attendees ? properties.attendees : [];
+    var privateId,
+        privateAccountId,
+        privateParentId;
 
-    var privateId = properties && properties.id ? properties.id : null;
+    this.allDay = properties && properties.allDay !== undefined ? properties.allDay : null;
+    this.attendees = properties && properties.attendees !== undefined ? properties.attendees : [];
+    this.birthday = properties && properties.birthday !== undefined ? properties.birthday : null;
+    this.description = properties && properties.description !== undefined ? properties.description : "";
+    this.end = properties && properties.end !== undefined ? new Date(parseInt(properties.end, 10)) : null;
+    // TODO folderId?
+    this.location = properties && properties.location !== undefined ? properties.location : "";
+    this.reminder = properties && properties.reminder !== undefined ? properties.reminder : "";
+    this.recurrence = properties && properties.recurrence !== undefined ? properties.recurrence : null;
+    this.sensitivity = properties && properties.sensitivity !== undefined ? properties.sensitivity : null;
+    this.status = properties && properties.status !== undefined ? properties.status : "";
+    this.start = properties && properties.start !== undefined ? new Date(parseInt(properties.start, 10)) : null;
+    this.summary = properties && properties.summary !== undefined ? properties.summary : "";
+    this.timezone = properties && properties.timezone !== undefined ? properties.timezone : "";
+    this.transparency = properties && properties.transparency !== undefined ? properties.transparency : "";
+
+    privateId = properties && properties.id !== undefined ? properties.id : null;
+    privateAccountId = properties && properties.accountId !== undefined ? properties.accountId : null;
+    privateParentId = properties && properties.parentId !== undefined ? properties.parentId : null;
+
     Object.defineProperty(this, "id", { "value": privateId });
+    Object.defineProperty(this, "accountId", { "value": privateAccountId });
+    Object.defineProperty(this, "parentId", { "value": privateParentId });
+
 };
 
 CalendarEvent.prototype.save = function (onSaveSuccess, onSaveError) {
@@ -70,11 +85,35 @@ CalendarEvent.prototype.save = function (onSaveSuccess, onSaveError) {
         args.anniversary = args.anniversary.toDateString();
     }
 */
+
+    if (args.start) {
+        console.log(args.start.toDateString());
+        args.start = args.start.toDateString();
+    }
+
+    if (args.end) {
+        console.log(args.end.toDateString());
+        args.end = args.end.toDateString();
+    }
+
     if (this.id === null || this.id === "" || window.isNaN(this.id)) {
         args.id = this.id;
     } else {
         args.id = window.parseInt(this.id);
     }
+
+    if (this.accountId === null || this.accountId === "" || window.isNaN(this.accountId)) {
+        args.accountId = this.accountId;
+    } else {
+        args.accountId = window.parseInt(this.accountId);
+    }
+
+    if (this.parentId === null || this.parentId === "" || window.isNaN(this.parentId)) {
+        args.parentId = this.parentId;
+    } else {
+        args.parentId = window.parseInt(this.parentId);
+    }
+
 
     args._eventId = utils.guid();
 
@@ -143,5 +182,10 @@ CalendarEvent.prototype.clone = function () {
 
     return calEvent;
 };
+
+Object.defineProperty(CalendarEvent, "NORMAL", {"value": 0});
+Object.defineProperty(CalendarEvent, "PERSONAL", {"value": 1});
+Object.defineProperty(CalendarEvent, "PRIVATE", {"value": 2});
+Object.defineProperty(CalendarEvent, "CONFIDENTIAL", {"value": 3});
 
 module.exports = CalendarEvent;

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 var _self = {},
     _ID = require("./manifest.json").namespace,
     calendarUtils = require("./calendarUtils"),
@@ -141,17 +141,18 @@ _self.findEvents = function (onFindSuccess, onFindError, findOptions) {
     callback = function (args) {
         console.log(unescape(args.result));
         var result = JSON.parse(unescape(args.result)),
-            events = result.events;//
-            //realEvents = [];
+            events = result.events,
+            realEvents = [];
 
-        if (result._success) {/*
+        if (result._success) {
             if (events) {
-                events.forEach(function (contact) {
-                    contactUtils.populateContact(contact);
-                    realContacts.push(new Contact(contact));
+                events.forEach(function (event) {
+                    // contactUtils.populateContact(contact);
+                    realEvents.push(new CalendarEvent(event));
                 });
-            }*/
-            onFindSuccess(events/*realContacts*/);
+            }
+            console.log(events);
+            onFindSuccess(realEvents);
         } else {
             invokeCallback(onFindError, new CalendarError(result.code));
         }
