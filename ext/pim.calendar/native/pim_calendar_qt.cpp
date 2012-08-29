@@ -24,6 +24,8 @@
 #include <bb/pim/calendar/EventSearchParameters>
 #include <bb/pim/calendar/SortField>
 #include <bb/pim/calendar/FolderKey>
+#include <bb/pim/calendar/Sensitivity>
+#include <bb/pim/calendar/BusyStatus>
 #include <bb/pim/account/AccountService>
 #include <bb/pim/account/Account>
 #include <bb/pim/account/Service>
@@ -433,13 +435,37 @@ Json::Value PimCalendarQt::EditCalendarEvent(bbpim::CalendarEvent& calEvent, con
         }
 
         if (key == "sensitivity") {
-            // TODO Sensitivity Type Enum
-            // calEvent.setSensitivity();
+            switch (attributeObj[key].asInt()){
+                case bbpim::Sensitivity::Normal:
+                    calEvent.setSensitivity(bbpim::Sensitivity::Normal);
+                    break;
+                case bbpim::Sensitivity::Personal:
+                    calEvent.setSensitivity(bbpim::Sensitivity::Personal);
+                    break;
+                case bbpim::Sensitivity::Private:
+                    calEvent.setSensitivity(bbpim::Sensitivity::Private);
+                    break;
+                case bbpim::Sensitivity::Confidential:
+                    calEvent.setSensitivity(bbpim::Sensitivity::Confidential);
+                    break;
+            }
         }
 
         if (key == "transparency") {
-            /// TODO BusyStatus::Type
-            // calEvent.setBusyStatus();
+            switch (attributeObj[key].asInt()){
+                case bbpim::BusyStatus::Free:
+                    calEvent.setBusyStatus(bbpim::BusyStatus::Free);
+                    break;
+                case bbpim::BusyStatus::Tentative:
+                    calEvent.setBusyStatus(bbpim::BusyStatus::Tentative);
+                    break;
+                case bbpim::BusyStatus::Busy:
+                    calEvent.setBusyStatus(bbpim::BusyStatus::Busy);
+                    break;
+                case bbpim::BusyStatus::Confidential:
+                    calEvent.setBusyStatus(bbpim::BusyStatus::Confidential);
+                    break;
+            }
         }
 
         if (key == "attendees") {
@@ -459,14 +485,14 @@ Json::Value PimCalendarQt::EditCalendarEvent(bbpim::CalendarEvent& calEvent, con
 
     Json::Value returnObj;
 
-    // if (contact.isValid()) {
-    //     returnObj = populateContact(contact, eventFields);
-    //     returnObj["_success"] = true;
-    // } else {
-    //     returnObj["_success"] = false;
-    //     returnObj["code"] = UNKNOWN_ERROR;
-    // }
-    // Json::Value returnObj;
+    if (calEvent.isValid()) {
+        // returnObj = populateContact(contact, eventFields);
+        returnObj["_success"] = true;
+    } else {
+        returnObj["_success"] = false;
+        returnObj["code"] = UNKNOWN_ERROR;
+    }
+
     return returnObj;
 }
 
