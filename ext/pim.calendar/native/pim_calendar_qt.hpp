@@ -18,9 +18,10 @@
 #define PIM_CALENDAR_QT_H_
 
 #include <json/value.h>
-#include <bb/pim/calendar/DataTypes.hpp>
-#include <bb/pim/calendar/CalendarService.hpp>
-#include <bb/pim/calendar/CalendarEvent.hpp>
+#include <bb/pim/calendar/DataTypes>
+#include <bb/pim/calendar/CalendarService>
+#include <bb/pim/calendar/CalendarEvent>
+#include <bb/pim/calendar/FolderKey>
 #include <string>
 #include <utility>
 #include <map>
@@ -69,9 +70,13 @@ public:
 
 private:
     std::string intToStr(const int val);
+    std::string getFolderKeyStr(bbpim::AccountId accountId, bbpim::FolderId folderId);
     bool getSearchParams(bbpim::EventSearchParameters& searchParams, const Json::Value& args);
-    Json::Value getCalendarFolderByFolderKey(bbpim::AccountId accountId, bbpim::FolderId folderId);
+    void lookupCalendarFolderByFolderKey(bbpim::AccountId accountId, bbpim::FolderId folderId);
     Json::Value getCalendarFolderJson(const bbpim::CalendarFolder& folder);
+
+    std::map<std::string, bbpim::CalendarFolder> _allFoldersMap;
+    std::map<std::string, bbpim::CalendarFolder> _foldersMap;
 /*
     // Helper functions for Find
     Json::Value assembleSearchResults(const QSet<bbpim::ContactId>& results, const Json::Value& contactFields, int limit);

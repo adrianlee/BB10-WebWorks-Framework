@@ -152,6 +152,7 @@ _self.findEvents = function (onFindSuccess, onFindError, findOptions) {
                     realEvents.push(new CalendarEvent(event));
                 });
             }
+            console.log(result.folders);
             console.log(events);
             onFindSuccess(realEvents);
         } else {

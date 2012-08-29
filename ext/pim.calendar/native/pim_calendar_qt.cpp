@@ -84,19 +84,25 @@ Json::Value PimCalendarQt::Find(const Json::Value& args)
     // TODO(rtse): must escape double quotes and other problematic characters otherwise there might be problems with JSON parsing
 
     if (isParamsValid) {
+        _allFoldersMap.clear();
+        _foldersMap.clear();
+
         bbpim::CalendarService service;
         QList<bbpim::CalendarEvent> events = service.events(searchParams);
 
         Json::Value results;
+        Json::Value folderList;
         QString format = "yyyy-MM-dd hh:mm:ss";
 
         for (QList<bbpim::CalendarEvent>::const_iterator i = events.constBegin(); i != events.constEnd(); i++) {
             bbpim::CalendarEvent event = *i;
             Json::Value e;
 
+            lookupCalendarFolderByFolderKey(event.accountId(), event.folderId());
+
             e["accountId"] = intToStr(event.accountId());
             e["id"] = intToStr(event.id());
-            e["folder"] = getCalendarFolderByFolderKey(event.accountId(), event.folderId());
+            //e["folder"] = getCalendarFolderByFolderKey(event.accountId(), event.folderId());
             e["folderId"] = intToStr(event.folderId());
             e["parentId"] = intToStr(event.parentId());
 
@@ -181,8 +187,19 @@ Json::Value PimCalendarQt::Find(const Json::Value& args)
             results.append(e);
         }
 
+        for (std::map<std::string, bbpim::CalendarFolder>::const_iterator j = _foldersMap.begin(); j != _foldersMap.end(); j++) {
+            std::string key = j->first;
+            bbpim::CalendarFolder folder = j->second;
+            Json::Value folderEntry;
+
+            folderEntry[key] = getCalendarFolderJson(folder);
+
+            folderList.append(folderEntry);
+        }
+
         returnObj["_success"] = true;
         returnObj["events"] = results;
+        returnObj["folders"] = folderList;
     } else {
         returnObj["_success"] = false;
         returnObj["code"] = INVALID_ARGUMENT_ERROR;
@@ -504,21 +521,30 @@ std::string PimCalendarQt::intToStr(const int val) {
     return out.str();
 }
 
-Json::Value PimCalendarQt::getCalendarFolderByFolderKey(bbpim::AccountId accountId, bbpim::FolderId folderId) {
-    // TODO(rtse): cache folder for each search operation so that each find only needs to look up folder once,
-    // not for every event found in the folder
-    bbpim::CalendarService service;
-    QList<bbpim::CalendarFolder> folders = service.folders();
+std::string PimCalendarQt::getFolderKeyStr(bbpim::AccountId accountId, bbpim::FolderId folderId) {
+    std::string str(intToStr(accountId));
+    str += '-';
+    str += intToStr(folderId);
+    return str;
+}
 
-    for (QList<bbpim::CalendarFolder>::const_iterator i = folders.constBegin(); i != folders.constEnd(); i++) {
-        bbpim::CalendarFolder folder = *i;
+void PimCalendarQt::lookupCalendarFolderByFolderKey(bbpim::AccountId accountId, bbpim::FolderId folderId) {
+    std::string key = getFolderKeyStr(accountId, folderId);
 
-        if (folder.accountId() == accountId && folder.id() == folderId) {
-            return getCalendarFolderJson(folder);
+    if (_allFoldersMap.empty()) {
+        bbpim::CalendarService service;
+        QList<bbpim::CalendarFolder> folders = service.folders();
+
+        // populate map that contains all calendar folders
+        for (QList<bbpim::CalendarFolder>::const_iterator i = folders.constBegin(); i != folders.constEnd(); i++) {
+            bbpim::CalendarFolder folder = *i;
+            _allFoldersMap.insert(std::pair<std::string, bbpim::CalendarFolder>(getFolderKeyStr(folder.accountId(), folder.id()), folder));
         }
     }
 
-    return Json::Value();
+    if (_foldersMap.find(key) == _foldersMap.end()) {
+        _foldersMap.insert(std::pair<std::string, bbpim::CalendarFolder>(key, _allFoldersMap[key]));
+    }
 }
 
 Json::Value PimCalendarQt::getCalendarFolderJson(const bbpim::CalendarFolder& folder) {
