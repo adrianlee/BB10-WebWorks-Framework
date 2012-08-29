@@ -72,8 +72,11 @@ module.exports = {
     },
 
     remove: function (success, fail, args) {
-        var attributes = { "calEventId" : JSON.parse(decodeURIComponent(args.calEventId)),
-                           "_eventId" : JSON.parse(decodeURIComponent(args._eventId))};
+        var attributes = {
+            "accountId" : JSON.parse(decodeURIComponent(args.accountId)),
+            "calEventId" : JSON.parse(decodeURIComponent(args.calEventId)),
+            "_eventId" : JSON.parse(decodeURIComponent(args._eventId))
+        };
 
         if (!checkPermission(success, attributes["_eventId"])) {
             return;

@@ -24,6 +24,8 @@
 #include <bb/pim/calendar/EventSearchParameters>
 #include <bb/pim/calendar/SortField>
 #include <bb/pim/calendar/FolderKey>
+#include <bb/pim/calendar/Sensitivity>
+#include <bb/pim/calendar/BusyStatus>
 #include <bb/pim/account/AccountService>
 #include <bb/pim/account/Account>
 #include <bb/pim/account/Service>
@@ -222,7 +224,6 @@ Json::Value PimCalendarQt::Save(const Json::Value& attributeObj)
             bbpim::CalendarEvent event = service.event(accountId, eventId);
 
             if (event.isValid()) {
-                qDebug() << "!!! OKAY EVENT IS VALID";
                 return EditCalendarEvent(event, attributeObj);
             }
         } else {
@@ -373,27 +374,25 @@ Json::Value PimCalendarQt::CreateCalendarEvent(const Json::Value& args)
 
 Json::Value PimCalendarQt::DeleteCalendarEvent(const Json::Value& calEventObj)
 {
-/*
     Json::Value returnObj;
 
-    if (contactObj.isMember("contactId") && contactObj["contactId"].isInt()) {
-        bbpim::ContactId contactId = contactObj["contactId"].asInt();
+    if (calEventObj.isMember("calEventId") && calEventObj["calEventId"].isInt() && calEventObj.isMember("accountId") && calEventObj["accountId"].isInt()) {
+        int accountId = calEventObj["accountId"].asInt();
+        int eventId = calEventObj["calEventId"].asInt();
 
-        bbpim::ContactService service;
-        bbpim::Contact contact = service.filteredContact(contactId, bbpim::ContactListFilters());
+        bbpim::CalendarService service;
+        bbpim::CalendarEvent event = service.event(accountId, eventId);
 
-        if (contact.isValid()) {
-            service.deleteContact(contactId);
+        if (event.isValid()) {
+            service.deleteEvent(event);
             returnObj["_success"] = true;
             return returnObj;
         }
+    } else {
+        returnObj["_success"] = false;
+        returnObj["code"] = INVALID_ARGUMENT_ERROR;
+        return returnObj;
     }
-
-    returnObj["_success"] = false;
-    returnObj["code"] = INVALID_ARGUMENT_ERROR;
-*/
-    Json::Value returnObj;
-    return returnObj;
 }
 
 Json::Value PimCalendarQt::EditCalendarEvent(bbpim::CalendarEvent& calEvent, const Json::Value& attributeObj)
@@ -401,10 +400,11 @@ Json::Value PimCalendarQt::EditCalendarEvent(bbpim::CalendarEvent& calEvent, con
     const Json::Value::Members attributeKeys = attributeObj.getMemberNames();
     Json::Value eventFields;
 
+    // TODO Create some stringToEnumMap to use switch or private function?
+
     for (int i = 0; i < attributeKeys.size(); i++) {
         const std::string key = attributeKeys[i];
-        // eventFields.append(Json::Value(key));
-        // syncAttributeKind(contact, attributeObj[key], key);
+
         if (key == "birthday") {
             calEvent.setBirthday(attributeObj[key].asBool());
         }
@@ -450,13 +450,37 @@ Json::Value PimCalendarQt::EditCalendarEvent(bbpim::CalendarEvent& calEvent, con
         }
 
         if (key == "sensitivity") {
-            // TODO Sensitivity Type Enum
-            // calEvent.setSensitivity();
+            switch (attributeObj[key].asInt()){
+                case bbpim::Sensitivity::Normal:
+                    calEvent.setSensitivity(bbpim::Sensitivity::Normal);
+                    break;
+                case bbpim::Sensitivity::Personal:
+                    calEvent.setSensitivity(bbpim::Sensitivity::Personal);
+                    break;
+                case bbpim::Sensitivity::Private:
+                    calEvent.setSensitivity(bbpim::Sensitivity::Private);
+                    break;
+                case bbpim::Sensitivity::Confidential:
+                    calEvent.setSensitivity(bbpim::Sensitivity::Confidential);
+                    break;
+            }
         }
 
         if (key == "transparency") {
-            /// TODO BusyStatus::Type
-            // calEvent.setBusyStatus();
+            switch (attributeObj[key].asInt()){
+                case bbpim::BusyStatus::Free:
+                    calEvent.setBusyStatus(bbpim::BusyStatus::Free);
+                    break;
+                case bbpim::BusyStatus::Tentative:
+                    calEvent.setBusyStatus(bbpim::BusyStatus::Tentative);
+                    break;
+                case bbpim::BusyStatus::Busy:
+                    calEvent.setBusyStatus(bbpim::BusyStatus::Busy);
+                    break;
+                case bbpim::BusyStatus::OutOfOffice:
+                    calEvent.setBusyStatus(bbpim::BusyStatus::OutOfOffice);
+                    break;
+            }
         }
 
         if (key == "attendees") {
@@ -476,14 +500,14 @@ Json::Value PimCalendarQt::EditCalendarEvent(bbpim::CalendarEvent& calEvent, con
 
     Json::Value returnObj;
 
-    // if (contact.isValid()) {
-    //     returnObj = populateContact(contact, eventFields);
-    //     returnObj["_success"] = true;
-    // } else {
-    //     returnObj["_success"] = false;
-    //     returnObj["code"] = UNKNOWN_ERROR;
-    // }
-    // Json::Value returnObj;
+    if (calEvent.isValid()) {
+        // returnObj = populateContact(contact, eventFields);
+        returnObj["_success"] = true;
+    } else {
+        returnObj["_success"] = false;
+        returnObj["code"] = UNKNOWN_ERROR;
+    }
+
     return returnObj;
 }
 

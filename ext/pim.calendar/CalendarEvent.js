@@ -147,7 +147,8 @@ CalendarEvent.prototype.remove = function (onRemoveSuccess, onRemoveError) {
         errorCallback = onRemoveError,
         removeCallback;
 
-    args.contactId = window.parseInt(this.id);
+    args.accountId = window.parseInt(this.accountId);
+    args.calEventId = window.parseInt(this.id);
     args._eventId = utils.guid();
 
     removeCallback = function (args) {
