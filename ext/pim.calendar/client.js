@@ -99,7 +99,7 @@ function getFolderKeyList(folders) {
     return folderKeys;
 }
 
-_self.create = function (properties) {
+_self.create = function (properties, folder) {
     var args = {},
         key;
 
@@ -149,10 +149,10 @@ _self.findEvents = function (onFindSuccess, onFindError, findOptions) {
             if (events) {
                 events.forEach(function (event) {
                     // contactUtils.populateContact(contact);
+                    event["folder"] = result.folders[event.accountId + "-" + event.folderId];
                     realEvents.push(new CalendarEvent(event));
                 });
             }
-            console.log(result.folders);
             console.log(events);
             onFindSuccess(realEvents);
         } else {

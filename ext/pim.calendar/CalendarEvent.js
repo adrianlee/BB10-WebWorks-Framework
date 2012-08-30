@@ -16,7 +16,8 @@
 var CalendarEvent,
     _ID = require("./manifest.json").namespace, // normally 2nd-level require does not work in client side, but manifest has already been required in client.js, so this is ok
     utils = require("./../../lib/utils"),
-    CalendarError = require("./CalendarError");
+    CalendarError = require("./CalendarError"),
+    CalendarFolder = require("./CalendarFolder");
 
 /**
  * Contains information about a single calendar event.
@@ -25,15 +26,15 @@ var CalendarEvent,
  */
 CalendarEvent = function (properties) {
     var privateId,
-        privateAccountId,
-        privateParentId;
+        //privateAccountId,
+        privateParentId,
+        privateFolder;
 
     this.allDay = properties && properties.allDay !== undefined ? properties.allDay : null;
     this.attendees = properties && properties.attendees !== undefined ? properties.attendees : [];
     this.birthday = properties && properties.birthday !== undefined ? properties.birthday : null;
     this.description = properties && properties.description !== undefined ? properties.description : "";
     this.end = properties && properties.end !== undefined ? new Date(parseInt(properties.end, 10)) : null;
-    // TODO folderId?
     this.location = properties && properties.location !== undefined ? properties.location : "";
     this.reminder = properties && properties.reminder !== undefined ? properties.reminder : "";
     this.recurrence = properties && properties.recurrence !== undefined ? properties.recurrence : null;
@@ -43,15 +44,17 @@ CalendarEvent = function (properties) {
     this.summary = properties && properties.summary !== undefined ? properties.summary : "";
     this.timezone = properties && properties.timezone !== undefined ? properties.timezone : "";
     this.transparency = properties && properties.transparency !== undefined ? properties.transparency : "";
-    this.folder = properties && properties.folder !== undefined ? properties.folder : null;
 
     privateId = properties && properties.id !== undefined ? properties.id : null;
-    privateAccountId = properties && properties.accountId !== undefined ? properties.accountId : null;
+    //privateAccountId = properties && properties.accountId !== undefined ? properties.accountId : null;
     privateParentId = properties && properties.parentId !== undefined ? properties.parentId : null;
 
+    privateFolder = properties && properties.folder !== undefined ? new CalendarFolder(properties.folder) : null;
+
     Object.defineProperty(this, "id", { "value": privateId });
-    Object.defineProperty(this, "accountId", { "value": privateAccountId });
+    //Object.defineProperty(this, "accountId", { "value": privateAccountId });
     Object.defineProperty(this, "parentId", { "value": privateParentId });
+    Object.defineProperty(this, "folder", {"value": privateFolder });
 
 };
 
@@ -67,25 +70,6 @@ CalendarEvent.prototype.save = function (onSaveSuccess, onSaveError) {
             args[key] = this[key];
         }
     }
-/*
-    if (args.nickname) {
-        args.name = args.name || {};
-        args.name.nickname = args.nickname;
-    }
-
-    if (args.displayName) {
-        args.name = args.name || {};
-        args.name.displayName = args.displayName;
-    }
-
-    if (args.birthday && args.birthday.toDateString) {
-        args.birthday = args.birthday.toDateString();
-    }
-
-    if (args.anniversary && args.anniversary.toDateString) {
-        args.anniversary = args.anniversary.toDateString();
-    }
-*/
 
     if (args.start) {
         console.log(args.start.toDateString());
@@ -98,19 +82,25 @@ CalendarEvent.prototype.save = function (onSaveSuccess, onSaveError) {
     }
 
     if (this.id === null || this.id === "" || window.isNaN(this.id)) {
-        args.id = this.id;
+        args.id = "";
     } else {
         args.id = window.parseInt(this.id);
     }
 
-    if (this.accountId === null || this.accountId === "" || window.isNaN(this.accountId)) {
-        args.accountId = this.accountId;
+    if (!this.folder || !this.folder.accountId || window.isNaN(this.folder.accountId)) {
+        args.accountId = "";
     } else {
-        args.accountId = window.parseInt(this.accountId);
+        args.accountId = window.parseInt(this.folder.accountId);
+    }
+
+    if (!this.folder || !this.folder.id || window.isNaN(this.folder.id)) {
+        args.folderId = "";
+    } else {
+        args.folderId = window.parseInt(this.folder.id);
     }
 
     if (this.parentId === null || this.parentId === "" || window.isNaN(this.parentId)) {
-        args.parentId = this.parentId;
+        args.parentId = "";
     } else {
         args.parentId = window.parseInt(this.parentId);
     }

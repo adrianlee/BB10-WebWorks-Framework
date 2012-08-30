@@ -93,7 +93,7 @@ Json::Value PimCalendarQt::Find(const Json::Value& args)
         QList<bbpim::CalendarEvent> events = service.events(searchParams);
 
         Json::Value results;
-        Json::Value folderList;
+        Json::Value folders;
         QString format = "yyyy-MM-dd hh:mm:ss";
 
         for (QList<bbpim::CalendarEvent>::const_iterator i = events.constBegin(); i != events.constEnd(); i++) {
@@ -192,16 +192,12 @@ Json::Value PimCalendarQt::Find(const Json::Value& args)
         for (std::map<std::string, bbpim::CalendarFolder>::const_iterator j = _foldersMap.begin(); j != _foldersMap.end(); j++) {
             std::string key = j->first;
             bbpim::CalendarFolder folder = j->second;
-            Json::Value folderEntry;
-
-            folderEntry[key] = getCalendarFolderJson(folder);
-
-            folderList.append(folderEntry);
+            folders[key] = getCalendarFolderJson(folder);
         }
 
         returnObj["_success"] = true;
         returnObj["events"] = results;
-        returnObj["folders"] = folderList;
+        returnObj["folders"] = folders;
     } else {
         returnObj["_success"] = false;
         returnObj["code"] = INVALID_ARGUMENT_ERROR;
@@ -281,16 +277,23 @@ Json::Value PimCalendarQt::CreateCalendarEvent(const Json::Value& args)
     //Json::Value contactFields;
 
     Json::Value returnObj;
-
     bbpim::CalendarEvent ev;
-    bb::pim::account::AccountService accountService;
-    bb::pim::account::Account defaultCalAccnt = accountService.defaultAccount(bb::pim::account::Service::Calendars);
+
+    if (args.isMember("accountId") && args["accountId"].isInt() &&
+        args.isMember("folderId") && args["folderId"].isInt()) {
+        ev.setAccountId(args["accountId"].asInt());
+        ev.setFolderId(args["folderId"].asInt());
+    } else {
+        // no account id and folder id specified from JS, makes event goes to default calendar
+        bb::pim::account::AccountService accountService;
+        bb::pim::account::Account defaultCalAccnt = accountService.defaultAccount(bb::pim::account::Service::Calendars);
+        ev.setAccountId(defaultCalAccnt.id());
+        ev.setFolderId(1); // hard-code for now, no way to find out default calendar folder from pimlib
+    }
 
     QDateTime startTime = QDateTime::fromString(args["start"].asString().c_str(), "yyyyMMddhhmm");
     QDateTime endTime = QDateTime::fromString(args["end"].asString().c_str(), "yyyyMMddhhmm");
 
-    ev.setAccountId(defaultCalAccnt.id());
-    ev.setFolderId(1);
     ev.setStartTime(startTime);
     ev.setEndTime(endTime);
     // TODO(rtse): timezone
@@ -668,155 +671,6 @@ bool PimCalendarQt::getSearchParams(bbpim::EventSearchParameters& searchParams, 
 }
 
 /*
-QList<bbpim::SearchField::Type> PimContactsQt::getSearchFields(const Json::Value& searchFieldsJson)
-{
-    QList<bbpim::SearchField::Type> searchFields;
-
-    switch (searchFieldsJson["fieldName"].asInt()) {
-        case bbpim::SearchField::FirstName:
-            searchFields.append(bbpim::SearchField::FirstName);
-            break;
-        case bbpim::SearchField::LastName:
-            searchFields.append(bbpim::SearchField::LastName);
-            break;
-        case bbpim::SearchField::CompanyName:
-            searchFields.append(bbpim::SearchField::CompanyName);
-            break;
-        case bbpim::SearchField::Phone:
-            searchFields.append(bbpim::SearchField::Phone);
-            break;
-        case bbpim::SearchField::Email:
-            searchFields.append(bbpim::SearchField::Email);
-            break;
-        case bbpim::SearchField::BBMPin:
-            searchFields.append(bbpim::SearchField::BBMPin);
-            break;
-        case bbpim::SearchField::LinkedIn:
-            searchFields.append(bbpim::SearchField::LinkedIn);
-            break;
-        case bbpim::SearchField::Twitter:
-            searchFields.append(bbpim::SearchField::Twitter);
-            break;
-        case bbpim::SearchField::VideoChat:
-            searchFields.append(bbpim::SearchField::VideoChat);
-            break;
-    }
-
-    return searchFields;
-}
-
-void PimContactsQt::getSortSpecs(const Json::Value& sort)
-{
-    _sortSpecs.clear();
-
-    if (sort.isArray()) {
-        for (int j = 0; j < sort.size(); j++) {
-            bbpim::SortOrder::Type order;
-            bbpim::SortColumn::Type sortField;
-
-            if (sort[j]["desc"].asBool()) {
-                order = bbpim::SortOrder::Descending;
-            } else {
-                order = bbpim::SortOrder::Ascending;
-            }
-
-            switch (sort[j]["fieldName"].asInt()) {
-                case bbpim::SortColumn::FirstName:
-                    sortField = bbpim::SortColumn::FirstName;
-                    break;
-                case bbpim::SortColumn::LastName:
-                    sortField = bbpim::SortColumn::LastName;
-                    break;
-                case bbpim::SortColumn::CompanyName:
-                    sortField = bbpim::SortColumn::CompanyName;
-                    break;
-            }
-
-            _sortSpecs.append(bbpim::SortSpecifier(sortField, order));
-        }
-    }
-}
-
-QSet<bbpim::ContactId> PimContactsQt::getPartialSearchResults(const Json::Value& filter, const Json::Value& contactFields, const bool favorite)
-{
-    QSet<bbpim::ContactId> results;
-
-    _contactSearchMap.clear();
-
-    if (!filter.empty()) {
-        for (int j = 0; j < filter.size(); j++) {
-            QSet<bbpim::ContactId> currentResults = singleFieldSearch(filter[j], contactFields, favorite);
-
-            if (currentResults.empty()) {
-                // no need to continue, can return right away
-                results = currentResults;
-                break;
-            } else {
-                if (j == 0) {
-                    results = currentResults;
-                } else {
-                    results.intersect(currentResults);
-                }
-            }
-        }
-    }
-
-    return results;
-}
-
-QSet<bbpim::ContactId> PimContactsQt::singleFieldSearch(const Json::Value& searchFieldsJson, const Json::Value& contactFields, bool favorite)
-{
-    QList<bbpim::SearchField::Type> searchFields = PimContactsQt::getSearchFields(searchFieldsJson);
-    QSet<bbpim::ContactId> contactIds;
-
-    if (!searchFields.empty()) {
-        bbpim::ContactService contactService;
-        bbpim::ContactSearchFilters contactFilter;
-        QList<bbpim::AttributeKind::Type> includeFields;
-        QList<bbpim::Contact> results;
-
-        contactFilter.setSearchFields(searchFields);
-        contactFilter.setSearchValue(QString(searchFieldsJson["fieldValue"].asString().c_str()));
-
-        if (favorite) {
-            contactFilter.setIsFavourite(favorite);
-        }
-
-        for (int i = 0; i < contactFields.size(); i++) {
-            // favorite is always included, no need to include
-            if (contactFields[i].asString() == "favorite") {
-                continue;
-            }
-
-            std::map<std::string, bbpim::AttributeKind::Type>::const_iterator kindIter = _attributeKindMap.find(contactFields[i].asString());
-
-            if (kindIter != _attributeKindMap.end()) {
-                // multiple fields can map to the same kind, only add kind to the list if it's not already added
-                if (includeFields.count(kindIter->second) == 0) {
-                    includeFields.append(kindIter->second);
-                }
-            } else if (contactFields[i].asString() == "displayName" || contactFields[i].asString() == "nickname") {
-                // special case: displayName and nickname are first-level fields under Contact but only map to AttributeSubKind
-                if (includeFields.count(bbpim::AttributeKind::Name) == 0) {
-                    includeFields.append(bbpim::AttributeKind::Name);
-                }
-            }
-        }
-
-        contactFilter.setShowAttributes(true);
-        contactFilter.setIncludeAttributes(includeFields);
-
-        results = contactService.searchContacts(contactFilter);
-
-        for (int i = 0; i < results.size(); i++) {
-            contactIds.insert(results[i].id());
-            _contactSearchMap[results[i].id()] = results[i];
-        }
-    }
-
-    return contactIds;
-}
-
 void PimContactsQt::populateField(const bbpim::Contact& contact, bbpim::AttributeKind::Type kind, Json::Value& contactItem, bool isContactField, bool isArray)
 {
     QList<bbpim::ContactAttribute> attrs = contact.filteredAttributes(kind);
