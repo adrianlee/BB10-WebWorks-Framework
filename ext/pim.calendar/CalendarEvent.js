@@ -34,13 +34,13 @@ CalendarEvent = function (properties) {
     this.attendees = properties && properties.attendees !== undefined ? properties.attendees : [];
     this.birthday = properties && properties.birthday !== undefined ? properties.birthday : null;
     this.description = properties && properties.description !== undefined ? properties.description : "";
-    this.end = properties && properties.end !== undefined ? new Date(parseInt(properties.end, 10)) : null;
+    this.end = properties && properties.end !== undefined ? (properties.end instanceof Date ? properties.end : new Date(parseInt(properties.end, 10))) : null;
     this.location = properties && properties.location !== undefined ? properties.location : "";
     this.reminder = properties && properties.reminder !== undefined ? properties.reminder : "";
     this.recurrence = properties && properties.recurrence !== undefined ? properties.recurrence : null;
     this.sensitivity = properties && properties.sensitivity !== undefined ? properties.sensitivity : null;
     this.status = properties && properties.status !== undefined ? properties.status : "";
-    this.start = properties && properties.start !== undefined ? new Date(parseInt(properties.start, 10)) : null;
+    this.start = properties && properties.start !== undefined ? (properties.start instanceof Date ? properties.start : new Date(parseInt(properties.start, 10))) : null;
     this.summary = properties && properties.summary !== undefined ? properties.summary : "";
     this.timezone = properties && properties.timezone !== undefined ? properties.timezone : "";
     this.transparency = properties && properties.transparency !== undefined ? properties.transparency : "";
@@ -106,6 +106,8 @@ CalendarEvent.prototype.save = function (onSaveSuccess, onSaveError) {
     }
 
     args._eventId = utils.guid();
+
+    console.log(args);
 
     saveCallback = function (args) {
         var result = JSON.parse(unescape(args.result)),
