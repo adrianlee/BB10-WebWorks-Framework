@@ -94,99 +94,11 @@ Json::Value PimCalendarQt::Find(const Json::Value& args)
 
         Json::Value results;
         Json::Value folders;
-        QString format = "yyyy-MM-dd hh:mm:ss";
 
         for (QList<bbpim::CalendarEvent>::const_iterator i = events.constBegin(); i != events.constEnd(); i++) {
             bbpim::CalendarEvent event = *i;
-            Json::Value e;
-
             lookupCalendarFolderByFolderKey(event.accountId(), event.folderId());
-
-            e["accountId"] = intToStr(event.accountId());
-            e["id"] = intToStr(event.id());
-            //e["folder"] = getCalendarFolderByFolderKey(event.accountId(), event.folderId());
-            e["folderId"] = intToStr(event.folderId());
-            e["parentId"] = intToStr(event.parentId());
-
-            // Reminder can be negative, when an all-day event is created, and reminder is set to "On the day at 9am", reminder=-540 (negative!)
-            // For events with all-day=false, default reminder (in calendar app) is 15 mins before start -> reminder=15:
-            // Tested:
-            // 1 hour before start -> reminder=60
-            // 2 days before start -> reminder=2880
-            // 1 week before start -> reminder=10080
-            e["reminder"] = event.reminder();
-            e["birthday"] = event.isBirthday();
-            e["allDay"] = event.isAllDay();
-
-            // meeting status values:
-            // - 0: not a meeting;
-            // - 1 and 9: is a meeting;
-            // - 3 and 11: meeting received;
-            // - 5 and 13: meeting is canceled;
-            // - 7 and 15: meeting is canceled and received.
-            e["status"] = event.meetingStatus();
-
-            // busy status values (BusyStatus::Type)
-            // Free = 0, Used to inform that the event represents free time (the event's owner is available)
-            // Tentative = 1, Tells that an event may or may not happen (the owner may be available).
-            // Busy = 2, Tells that the event is confirmed (the owner is busy).
-            // OutOfOffice = 3, Indicates that the event owner is out of office.
-            e["transparency"] = event.busyStatus();
-            // e["start"] = event.startTime().toString(format).toStdString();
-            // e["end"] = event.endTime().toString(format).toStdString();
-            e["start"] = QString::number(event.startTime().toUTC().toMSecsSinceEpoch()).toStdString();
-            e["end"] = QString::number(event.endTime().toUTC().toMSecsSinceEpoch()).toStdString();
-
-            // sensitivity values (Sensitivity::Type)
-            // Normal = 0, To be used for unrestricted events.
-            // Personal = 1, Sensitivity value for personal events.
-            // Private = 2, Sensitivity level for private events.
-            // Confidential = 3, Maximum sensitivity level for events.
-            e["sensitivity"] = event.sensitivity();
-            e["timezone"] = event.timezone().toStdString();
-            e["summary"] = event.subject().toStdString();
-            e["description"] = event.body().toStdString();
-            e["location"] = event.location().toStdString();
-            e["url"] = event.url().toStdString();
-            e["attendees"] = Json::Value();
-
-            QList<bbpim::Attendee> attendees = event.attendees();
-
-            for (QList<bbpim::Attendee>::const_iterator j = attendees.constBegin(); j != attendees.constEnd(); j++) {
-                bbpim::Attendee attendee = *j;
-                Json::Value a;
-
-                a["id"] = intToStr(attendee.id());
-                a["eventId"] = intToStr(attendee.eventId());
-
-                // contactId is 0 even if contact is on device...maybe it's a permission issue (contact permission not specified in app)
-                // would most likely just leave it out
-                a["contactId"] = intToStr(attendee.contactId());
-                a["email"] = attendee.email().toStdString();
-                a["name"] = attendee.name().toStdString();
-                a["type"] = attendee.type();
-                a["role"] = attendee.role();
-                a["owner"] = attendee.isOwner();
-                a["status"] = attendee.status();
-
-                e["attendees"].append(a);
-            }
-
-            if (event.recurrence().isValid()) {
-                e["recurrence"] = Json::Value();
-                e["recurrence"]["start"] = event.recurrence().start().toString(format).toStdString();
-                e["recurrence"]["end"] = event.recurrence().end().toString(format).toStdString();
-                e["recurrence"]["until"] = event.recurrence().until().toString(format).toStdString();
-                e["recurrence"]["frequency"] = event.recurrence().frequency();
-                e["recurrence"]["interval"] = event.recurrence().interval();
-                e["recurrence"]["numberOfOccurrences"] = event.recurrence().numberOfOccurrences();
-                e["recurrence"]["dayInWeek"] = event.recurrence().dayInWeek();
-                e["recurrence"]["dayInMonth"] = event.recurrence().dayInMonth();
-                e["recurrence"]["weekInMonth"] = event.recurrence().weekInMonth();
-                e["recurrence"]["monthInYear"] = event.recurrence().monthInYear();
-            }
-
-            results.append(e);
+            results.append(populateEvent(event, true));
         }
 
         for (std::map<std::string, bbpim::CalendarFolder>::const_iterator j = _foldersMap.begin(); j != _foldersMap.end(); j++) {
@@ -210,9 +122,9 @@ Json::Value PimCalendarQt::Save(const Json::Value& attributeObj)
 {
     bbpim::CalendarService service;
 
-    if (!attributeObj.isMember("id") || attributeObj["id"].isNull()) {
+    if (!attributeObj.isMember("id") || attributeObj["id"].isNull() || !attributeObj["id"].isInt()) {
         return CreateCalendarEvent(attributeObj);
-    } else if (attributeObj.isMember("id") && attributeObj["id"].isInt()) {
+    } else {
         int eventId = attributeObj["id"].asInt();
         int accountId = attributeObj["accountId"].asInt();
 
@@ -364,7 +276,7 @@ Json::Value PimCalendarQt::CreateCalendarEvent(const Json::Value& args)
     service.createEvent(ev);
 
     if (ev.isValid()) {
-        //returnObj = populateContact(newContact, contactFields);
+        returnObj["event"] = populateEvent(ev, false);
         returnObj["_success"] = true;
         returnObj["id"] = Json::Value(ev.id());
     } else {
@@ -506,7 +418,7 @@ Json::Value PimCalendarQt::EditCalendarEvent(bbpim::CalendarEvent& calEvent, con
     Json::Value returnObj;
 
     if (calEvent.isValid()) {
-        // returnObj = populateContact(contact, eventFields);
+        returnObj["event"] = populateEvent(calEvent, false);
         returnObj["_success"] = true;
     } else {
         returnObj["_success"] = false;
@@ -555,6 +467,22 @@ std::string PimCalendarQt::getFolderKeyStr(bbpim::AccountId accountId, bbpim::Fo
     str += '-';
     str += intToStr(folderId);
     return str;
+}
+
+Json::Value PimCalendarQt::getCalendarFolderByFolderKey(bbpim::AccountId accountId, bbpim::FolderId folderId) {
+    bbpim::CalendarService service;
+    QList<bbpim::CalendarFolder> folders = service.folders();
+
+    // populate map that contains all calendar folders
+    for (QList<bbpim::CalendarFolder>::const_iterator i = folders.constBegin(); i != folders.constEnd(); i++) {
+        bbpim::CalendarFolder folder = *i;
+        
+        if (folder.accountId() == accountId && folder.id() == folderId) {
+            return getCalendarFolderJson(folder);
+        }
+    }
+
+    return Json::Value();
 }
 
 void PimCalendarQt::lookupCalendarFolderByFolderKey(bbpim::AccountId accountId, bbpim::FolderId folderId) {
@@ -866,6 +794,102 @@ Json::Value PimContactsQt::assembleSearchResults(const QSet<bbpim::ContactId>& r
 /****************************************************************
  * Helper functions shared by Find and Save
  ****************************************************************/
+Json::Value PimCalendarQt::populateEvent(const bbpim::CalendarEvent& event, bool isFind)
+{
+    Json::Value e;
+
+    e["accountId"] = intToStr(event.accountId());
+    e["id"] = intToStr(event.id());
+
+    if (!isFind) {
+        e["folder"] = getCalendarFolderByFolderKey(event.accountId(), event.folderId());
+    }
+
+    e["folderId"] = intToStr(event.folderId());
+    e["parentId"] = intToStr(event.parentId());
+
+    // Reminder can be negative, when an all-day event is created, and reminder is set to "On the day at 9am", reminder=-540 (negative!)
+    // For events with all-day=false, default reminder (in calendar app) is 15 mins before start -> reminder=15:
+    // Tested:
+    // 1 hour before start -> reminder=60
+    // 2 days before start -> reminder=2880
+    // 1 week before start -> reminder=10080
+    e["reminder"] = event.reminder();
+    e["birthday"] = event.isBirthday();
+    e["allDay"] = event.isAllDay();
+
+    // meeting status values:
+    // - 0: not a meeting;
+    // - 1 and 9: is a meeting;
+    // - 3 and 11: meeting received;
+    // - 5 and 13: meeting is canceled;
+    // - 7 and 15: meeting is canceled and received.
+    e["status"] = event.meetingStatus();
+
+    // busy status values (BusyStatus::Type)
+    // Free = 0, Used to inform that the event represents free time (the event's owner is available)
+    // Tentative = 1, Tells that an event may or may not happen (the owner may be available).
+    // Busy = 2, Tells that the event is confirmed (the owner is busy).
+    // OutOfOffice = 3, Indicates that the event owner is out of office.
+    e["transparency"] = event.busyStatus();
+    // e["start"] = event.startTime().toString(format).toStdString();
+    // e["end"] = event.endTime().toString(format).toStdString();
+    e["start"] = QString::number(event.startTime().toUTC().toMSecsSinceEpoch()).toStdString();
+    e["end"] = QString::number(event.endTime().toUTC().toMSecsSinceEpoch()).toStdString();
+
+    // sensitivity values (Sensitivity::Type)
+    // Normal = 0, To be used for unrestricted events.
+    // Personal = 1, Sensitivity value for personal events.
+    // Private = 2, Sensitivity level for private events.
+    // Confidential = 3, Maximum sensitivity level for events.
+    e["sensitivity"] = event.sensitivity();
+    e["timezone"] = event.timezone().toStdString();
+    e["summary"] = event.subject().toStdString();
+    e["description"] = event.body().toStdString();
+    e["location"] = event.location().toStdString();
+    e["url"] = event.url().toStdString();
+    e["attendees"] = Json::Value();
+
+    QList<bbpim::Attendee> attendees = event.attendees();
+
+    for (QList<bbpim::Attendee>::const_iterator j = attendees.constBegin(); j != attendees.constEnd(); j++) {
+        bbpim::Attendee attendee = *j;
+        Json::Value a;
+
+        a["id"] = intToStr(attendee.id());
+        a["eventId"] = intToStr(attendee.eventId());
+
+        // contactId is 0 even if contact is on device...maybe it's a permission issue (contact permission not specified in app)
+        // would most likely just leave it out
+        a["contactId"] = intToStr(attendee.contactId());
+        a["email"] = attendee.email().toStdString();
+        a["name"] = attendee.name().toStdString();
+        a["type"] = attendee.type();
+        a["role"] = attendee.role();
+        a["owner"] = attendee.isOwner();
+        a["status"] = attendee.status();
+
+        e["attendees"].append(a);
+    }
+
+    if (event.recurrence().isValid()) {
+        e["recurrence"] = Json::Value();
+        e["recurrence"]["start"] =  QString::number(event.recurrence().start().toUTC().toMSecsSinceEpoch()).toStdString();
+        e["recurrence"]["end"] = QString::number(event.recurrence().end().toUTC().toMSecsSinceEpoch()).toStdString();
+        e["recurrence"]["until"] = QString::number(event.recurrence().until().toUTC().toMSecsSinceEpoch()).toStdString();
+        e["recurrence"]["frequency"] = event.recurrence().frequency();
+        e["recurrence"]["interval"] = event.recurrence().interval();
+        e["recurrence"]["numberOfOccurrences"] = event.recurrence().numberOfOccurrences();
+        e["recurrence"]["dayInWeek"] = event.recurrence().dayInWeek();
+        e["recurrence"]["dayInMonth"] = event.recurrence().dayInMonth();
+        e["recurrence"]["weekInMonth"] = event.recurrence().weekInMonth();
+        e["recurrence"]["monthInYear"] = event.recurrence().monthInYear();
+    }
+
+    return e;
+}
+
+
 /*
 Json::Value PimContactsQt::populateContact(bbpim::Contact& contact, const Json::Value& contactFields)
 {

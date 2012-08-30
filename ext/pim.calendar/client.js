@@ -109,6 +109,8 @@ _self.create = function (properties, folder) {
         }
     }
 
+    args["folder"] = folder;
+
     args.id = null;
 
     return new CalendarEvent(args);

@@ -26,7 +26,6 @@ var CalendarEvent,
  */
 CalendarEvent = function (properties) {
     var privateId,
-        //privateAccountId,
         privateParentId,
         privateFolder;
 
@@ -46,13 +45,10 @@ CalendarEvent = function (properties) {
     this.transparency = properties && properties.transparency !== undefined ? properties.transparency : "";
 
     privateId = properties && properties.id !== undefined ? properties.id : null;
-    //privateAccountId = properties && properties.accountId !== undefined ? properties.accountId : null;
     privateParentId = properties && properties.parentId !== undefined ? properties.parentId : null;
-
     privateFolder = properties && properties.folder !== undefined ? new CalendarFolder(properties.folder) : null;
 
     Object.defineProperty(this, "id", { "value": privateId });
-    //Object.defineProperty(this, "accountId", { "value": privateAccountId });
     Object.defineProperty(this, "parentId", { "value": privateParentId });
     Object.defineProperty(this, "folder", {"value": privateFolder });
 
@@ -81,27 +77,19 @@ CalendarEvent.prototype.save = function (onSaveSuccess, onSaveError) {
         args.end = args.end.toISOString();
     }
 
-    if (this.id === null || this.id === "" || window.isNaN(this.id)) {
-        args.id = "";
-    } else {
+    if (this.id && !window.isNaN(this.id)) {
         args.id = window.parseInt(this.id);
     }
 
-    if (!this.folder || !this.folder.accountId || window.isNaN(this.folder.accountId)) {
-        args.accountId = "";
-    } else {
+    if (this.folder && this.folder.accountId && !window.isNaN(this.folder.accountId)) {
         args.accountId = window.parseInt(this.folder.accountId);
     }
 
-    if (!this.folder || !this.folder.id || window.isNaN(this.folder.id)) {
-        args.folderId = "";
-    } else {
+    if (this.folder && this.folder.id && !window.isNaN(this.folder.id)) {
         args.folderId = window.parseInt(this.folder.id);
     }
 
-    if (this.parentId === null || this.parentId === "" || window.isNaN(this.parentId)) {
-        args.parentId = "";
-    } else {
+    if (this.parentId && !window.isNaN(this.parentId)) {
         args.parentId = window.parseInt(this.parentId);
     }
 
@@ -112,6 +100,9 @@ CalendarEvent.prototype.save = function (onSaveSuccess, onSaveError) {
     saveCallback = function (args) {
         var result = JSON.parse(unescape(args.result)),
             errorObj;
+
+        console.log("Save result!");
+        console.log(result);
 
         if (result._success) {
             if (successCallback) {

@@ -75,6 +75,9 @@ private:
     void lookupCalendarFolderByFolderKey(bbpim::AccountId accountId, bbpim::FolderId folderId);
     Json::Value getCalendarFolderJson(const bbpim::CalendarFolder& folder);
 
+    Json::Value populateEvent(const bbpim::CalendarEvent& event, bool isFind);
+    Json::Value getCalendarFolderByFolderKey(bbpim::AccountId accountId, bbpim::FolderId folderId);
+
     std::map<std::string, bbpim::CalendarFolder> _allFoldersMap;
     std::map<std::string, bbpim::CalendarFolder> _foldersMap;
 /*
