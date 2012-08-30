@@ -21,7 +21,8 @@ var _self = {},
     CalendarEvent = require("./CalendarEvent"),
     CalendarError = require("./CalendarError"),
     CalendarFindOptions = require("./CalendarFindOptions"),
-    CalendarFolder = require("./CalendarFolder");
+    CalendarFolder = require("./CalendarFolder"),
+    CalendarRepeatRule = require("./CalendarRepeatRule");
 
 function invokeCallback(callback, args) {
     if (callback && typeof callback === "function") {
@@ -173,6 +174,7 @@ _self.findEvents = function (onFindSuccess, onFindError, findOptions) {
 };
 
 _self.CalendarEvent = CalendarEvent;
+_self.CalendarRepeatRule = CalendarRepeatRule;
 _self.CalendarError = CalendarError;
 _self.CalendarFindOptions = CalendarFindOptions;
 _self.CalendarFolder = CalendarFolder;
