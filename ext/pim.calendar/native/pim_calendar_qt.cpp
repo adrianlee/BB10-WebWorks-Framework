@@ -203,8 +203,8 @@ Json::Value PimCalendarQt::CreateCalendarEvent(const Json::Value& args)
         ev.setFolderId(1); // hard-code for now, no way to find out default calendar folder from pimlib
     }
 
-    QDateTime startTime = QDateTime::fromString(args["start"].asString().c_str(), "yyyyMMddhhmm");
-    QDateTime endTime = QDateTime::fromString(args["end"].asString().c_str(), "yyyyMMddhhmm");
+    QDateTime startTime = QDateTime::fromString(args["start"].asString().c_str(), "yyyy-MM-dd'T'hh:mm:ss'.000Z'");
+    QDateTime endTime = QDateTime::fromString(args["end"].asString().c_str(), "yyyy-MM-dd'T'hh:mm:ss'.000Z'");
 
     ev.setStartTime(startTime);
     ev.setEndTime(endTime);
