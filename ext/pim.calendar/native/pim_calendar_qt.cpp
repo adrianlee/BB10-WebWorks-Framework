@@ -189,6 +189,8 @@ Json::Value PimCalendarQt::CreateCalendarEvent(const Json::Value& args)
     //Json::Value contactFields;
 
     Json::Value returnObj;
+
+    bbpim::CalendarService service;
     bbpim::CalendarEvent ev;
 
     if (args.isMember("accountId") && args["accountId"].isInt() &&
@@ -203,8 +205,8 @@ Json::Value PimCalendarQt::CreateCalendarEvent(const Json::Value& args)
         ev.setFolderId(1); // hard-code for now, no way to find out default calendar folder from pimlib
     }
 
-    QDateTime startTime = QDateTime::fromString(args["start"].asString().c_str(), "yyyy-MM-dd'T'hh:mm:ss'.000Z'");
-    QDateTime endTime = QDateTime::fromString(args["end"].asString().c_str(), "yyyy-MM-dd'T'hh:mm:ss'.000Z'");
+    QDateTime startTime = QDateTime::fromString(args["start"].asCString(), "yyyy-MM-dd'T'hh:mm:ss'.000Z'");
+    QDateTime endTime = QDateTime::fromString(args["end"].asCString(),  "yyyy-MM-dd'T'hh:mm:ss'.000Z'");
 
     ev.setStartTime(startTime);
     ev.setEndTime(endTime);
@@ -212,7 +214,9 @@ Json::Value PimCalendarQt::CreateCalendarEvent(const Json::Value& args)
     ev.setSubject(args["summary"].asString().c_str());
     ev.setLocation(args["location"].asString().c_str());
 
-    if (!args["recurrence"].isNull()) {
+    ev.setBusyStatus(bbpim::BusyStatus::Type(args.get("transparency", bbpim::BusyStatus::Tentative).asInt()));
+
+    if (args.isMember("recurrence") && !args["recurrence"].isNull()) {
         Json::Value recurrence_json = args["recurrence"];
 
         if (recurrence_json["frequency"].isNull()) {
@@ -225,11 +229,11 @@ Json::Value PimCalendarQt::CreateCalendarEvent(const Json::Value& args)
         recurrence.setFrequency(bbpim::Frequency::Type(recurrence_json["frequency"].asInt()));
         recurrence.setInterval(recurrence_json.get("interval", 1).asInt());
 
-        if (recurrence_json.isMember("expires")) {
+        if (recurrence_json.isMember("expires") && !recurrence_json["expires"].isNull()) {
             recurrence.setUntil(QDateTime::fromString(recurrence_json["expires"].asCString(), "yyyyMMddhhmm"));
         }
 
-        if (recurrence_json.isMember("numberOfOccurrences")) {
+        if (recurrence_json.isMember("numberOfOccurrences") && !recurrence_json["numberOfOccurrences"].isNull()) {
             recurrence.setNumberOfOccurrences(recurrence_json["numberOfOccurrences"].asInt());
         }
 
@@ -237,6 +241,10 @@ Json::Value PimCalendarQt::CreateCalendarEvent(const Json::Value& args)
         recurrence.setWeekInMonth(recurrence_json.get("weekInMonth", (startTime.date().day()/7) + 1).asInt());
         recurrence.setDayInMonth(recurrence_json.get("dayInMonth", startTime.date().day()).asInt());
         recurrence.setMonthInYear(recurrence_json.get("monthInYear", startTime.date().month()).asInt());
+
+        for (int i = 0; i < recurrence_json["exceptionDates"].size(); i++) {
+            recurrence.addException(QDateTime::fromString(recurrence_json["exceptionDates"][i].asCString(), "yyyyMMddhhmm"));
+        }
 
         if (!recurrence.isValid()) {
             returnObj["_success"] = false;
@@ -255,6 +263,7 @@ Json::Value PimCalendarQt::CreateCalendarEvent(const Json::Value& args)
         attendee.setEmail(QString(attendee_json.get("email", "").asCString()));
         attendee.setType((bbpim::Attendee::Type)(attendee_json.get("type", bbpim::Attendee::Host).asInt()));
         attendee.setRole((bbpim::AttendeeRole::Type)(attendee_json.get("role", bbpim::AttendeeRole::Chair).asInt()));
+        attendee.setStatus((bbpim::AttendeeStatus::Type)(attendee_json.get("status", bbpim::AttendeeStatus::Unknown).asInt()));
         attendee.setContactId(attendee_json.get("contactId", 0).asInt());
         attendee.setOwner(attendee_json.get("owner", false).asBool());
 
@@ -268,12 +277,24 @@ Json::Value PimCalendarQt::CreateCalendarEvent(const Json::Value& args)
     }
 
     bbpim::Notification notification;
-    notification.setComments(QString("Some comments for you"));
+    notification.setComments(QString("This is a test event created by the WebWorks PIM Calendar API."));
     notification.setNotifyAll(true);
+    notification.setAccountId(ev.accountId());
+    notification.setMessageAccountId(ev.accountId());
 
-    bbpim::CalendarService service;
-    // service.createEvent(ev, notification);
-    service.createEvent(ev);
+    if (args.isMember("parentId") && !args["parentId"].isNull() && args["parentId"].asInt() != 0) {
+        // This is a recurrence exception event
+        if (!args.isMember("originalStartTime") || args["originalStartTime"].isNull()) {
+            returnObj["_success"] = false;
+            returnObj["code"] = INVALID_ARGUMENT_ERROR;
+            return returnObj;
+        }
+
+        ev.setId(args["parentId"].asInt());
+        service.createRecurrenceException(ev, QDateTime::fromString(args["originalStartTime"].asCString(), "yyyyMMddhhmm"));
+    } else {
+        service.createEvent(ev, notification);
+    }
 
     if (ev.isValid()) {
         returnObj["event"] = populateEvent(ev, false);

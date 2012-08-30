@@ -43,6 +43,7 @@ CalendarEvent = function (properties) {
     this.summary = properties && properties.summary !== undefined ? properties.summary : "";
     this.timezone = properties && properties.timezone !== undefined ? properties.timezone : "";
     this.transparency = properties && properties.transparency !== undefined ? properties.transparency : "";
+    this.originalStartTime = properties && properties.originalStartTime ? properties.originalStartTime : null;
 
     privateId = properties && properties.id !== undefined ? properties.id : null;
     privateParentId = properties && properties.parentId !== undefined ? properties.parentId : null;
@@ -51,19 +52,29 @@ CalendarEvent = function (properties) {
     Object.defineProperty(this, "id", { "value": privateId });
     Object.defineProperty(this, "parentId", { "value": privateParentId });
     Object.defineProperty(this, "folder", {"value": privateFolder });
-
 };
 
 CalendarEvent.prototype.save = function (onSaveSuccess, onSaveError) {
     var args = {},
         key,
+        innerKey,
         successCallback = onSaveSuccess,
         errorCallback = onSaveError,
         saveCallback;
 
     for (key in this) {
         if (this.hasOwnProperty(key) && this[key] !== null) {
-            args[key] = this[key];
+            if (Object.prototype.toString.call(this[key]) === "[object Object]") {
+                args[key] = {};
+
+                for (innerKey in this[key]) {
+                    if (this[key][innerKey] !== null) {
+                        args[key][innerKey] = this[key][innerKey];
+                    }
+                }
+            } else {
+                args[key] = this[key];
+            }
         }
     }
 
@@ -75,6 +86,18 @@ CalendarEvent.prototype.save = function (onSaveSuccess, onSaveError) {
     if (args.end) {
         console.log(args.end.toISOString());
         args.end = args.end.toISOString();
+    }
+
+    if (args.attendees) {
+        for (key in args.attendees) {
+            if (args.attendees[key].contactId && !window.isNaN(args.attendees[key].contactId)) {
+                args.attendees[key].contactId = window.parseInt(args.attendees[key].contactId);
+            }
+
+            if (args.attendees[key].id && !window.isNaN(args.attendees[key].id)) {
+                args.attendees[key].id = window.parseInt(args.attendees[key].id);
+            }
+        }
     }
 
     if (this.id && !window.isNaN(this.id)) {
@@ -108,9 +131,7 @@ CalendarEvent.prototype.save = function (onSaveSuccess, onSaveError) {
             if (successCallback) {
                 result.id = result.id.toString();
                 //contactUtils.populateContact(result);
-
-                //newContact = new CalendarEvent(result);
-                successCallback(result.id);
+                successCallback(new CalendarEvent(result.event));
             }
         } else {
             if (errorCallback) {
@@ -165,6 +186,30 @@ CalendarEvent.prototype.clone = function () {
     }
 
     return calEvent;
+};
+
+CalendarEvent.prototype.createExceptionEvent = function (originalStartTime) {
+    var properties = {},
+        key,
+        exceptionEvent;
+
+    for (key in this) {
+        if (this.hasOwnProperty(key) && key !== "recurrence") {
+            properties[key] = this[key];
+        }
+    }
+
+    properties.id = null;
+    properties.parentId = this.id;
+    properties.originalStartTime = originalStartTime;
+
+    exceptionEvent = new CalendarEvent(properties);
+
+    if (this.recurrence && this.recurrence.exceptionDates && this.recurrence.exceptionDates.indexOf(originalStartTime) === -1) {
+        this.recurrence.exceptionDates.push(originalStartTime);
+    }
+
+    return exceptionEvent;
 };
 
 Object.defineProperty(CalendarEvent, "NORMAL", {"value": 0});
