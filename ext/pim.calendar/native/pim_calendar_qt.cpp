@@ -405,19 +405,21 @@ Json::Value PimCalendarQt::EditCalendarEvent(bbpim::CalendarEvent& calEvent, con
     for (int i = 0; i < attributeKeys.size(); i++) {
         const std::string key = attributeKeys[i];
 
+        if (key == "allDay") {
+            calEvent.setAllDay(attributeObj[key].asBool());
+        }
+
         if (key == "birthday") {
             calEvent.setBirthday(attributeObj[key].asBool());
         }
 
         if (key == "start") {
-            // TODO add time
-            QDateTime date = QDateTime::fromString(QString(attributeObj[key].asString().c_str()), QString("ddd MMM dd yyyy"));
+            QDateTime date = QDateTime::fromString(QString(attributeObj[key].asString().c_str()), QString("yyyy-MM-dd'T'hh:mm:ss'.000Z'"));
             calEvent.setStartTime(date);
         }
 
         if (key == "end") {
-            // TODO add time
-            QDateTime date = QDateTime::fromString(QString(attributeObj[key].asString().c_str()), QString("ddd MMM dd yyyy"));
+            QDateTime date = QDateTime::fromString(QString(attributeObj[key].asString().c_str()), QString("yyyy-MM-dd'T'hh:mm:ss'.000Z'"));
             calEvent.setEndTime(date);
         }
 

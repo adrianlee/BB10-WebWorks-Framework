@@ -88,13 +88,13 @@ CalendarEvent.prototype.save = function (onSaveSuccess, onSaveError) {
 */
 
     if (args.start) {
-        console.log(args.start.toDateString());
-        args.start = args.start.toDateString();
+        console.log(args.start.toISOString());
+        args.start = args.start.toISOString();
     }
 
     if (args.end) {
-        console.log(args.end.toDateString());
-        args.end = args.end.toDateString();
+        console.log(args.end.toISOString());
+        args.end = args.end.toISOString();
     }
 
     if (this.id === null || this.id === "" || window.isNaN(this.id)) {
