@@ -17,6 +17,7 @@ var CalendarEvent,
     _ID = require("./manifest.json").namespace, // normally 2nd-level require does not work in client side, but manifest has already been required in client.js, so this is ok
     utils = require("./../../lib/utils"),
     CalendarError = require("./CalendarError"),
+    CalendarRepeatRule = require("./CalendarRepeatRule"),
     CalendarFolder = require("./CalendarFolder");
 
 /**
@@ -43,7 +44,6 @@ CalendarEvent = function (properties) {
     this.summary = properties && properties.summary !== undefined ? properties.summary : "";
     this.timezone = properties && properties.timezone !== undefined ? properties.timezone : "";
     this.transparency = properties && properties.transparency !== undefined ? properties.transparency : "";
-    this.originalStartTime = properties && properties.originalStartTime ? properties.originalStartTime : null;
 
     privateId = properties && properties.id !== undefined ? properties.id : null;
     privateParentId = properties && properties.parentId !== undefined ? properties.parentId : null;
@@ -72,18 +72,12 @@ CalendarEvent.prototype.save = function (onSaveSuccess, onSaveError) {
                         args[key][innerKey] = this[key][innerKey];
                     }
                 }
+            } else if (Object.prototype.toString.call(this[key]) === "[object Date]") {
+                args[key] = this[key].toISOString();
             } else {
                 args[key] = this[key];
             }
         }
-    }
-
-    if (args.start) {
-        args.start = args.start.toISOString();
-    }
-
-    if (args.end) {
-        args.end = args.end.toISOString();
     }
 
     if (args.attendees) {
@@ -95,6 +89,18 @@ CalendarEvent.prototype.save = function (onSaveSuccess, onSaveError) {
             if (args.attendees[key].id && !window.isNaN(args.attendees[key].id)) {
                 args.attendees[key].id = window.parseInt(args.attendees[key].id);
             }
+        }
+    }
+
+    if (args.recurrence) {
+        if (args.recurrence.exceptionDates) {
+            for (key in args.recurrence.exceptionDates) {
+                args.recurrence.exceptionDates[key] = args.recurrence.exceptionDates[key].toISOString();
+            }
+        }
+
+        if (args.recurrence.expires) {
+            args.recurrence.expires = args.recurrence.expires.toISOString();
         }
     }
 
@@ -120,19 +126,25 @@ CalendarEvent.prototype.save = function (onSaveSuccess, onSaveError) {
 
     saveCallback = function (args) {
         var result = JSON.parse(unescape(args.result)),
-            errorObj;
+            errorObj,
+            newEvent;
 
         console.log("Save result!");
         console.log(result);
 
         if (result._success) {
             if (successCallback) {
+                //contactUtils.populateContact(result);
+                if (result.event.recurrence) {
+                    result.event.recurrence = new CalendarRepeatRule(result.event.recurrence);
+                }
+
                 newEvent = new CalendarEvent(result.event);
                 successCallback(newEvent);
             }
         } else {
             if (errorCallback) {
-                errorObj = new ContactError(result.code);
+                errorObj = new CalendarError(result.code);
                 errorCallback(errorObj);
             }
         }
@@ -198,13 +210,18 @@ CalendarEvent.prototype.createExceptionEvent = function (originalStartTime) {
 
     properties.id = null;
     properties.parentId = this.id;
-    properties.originalStartTime = originalStartTime;
 
     exceptionEvent = new CalendarEvent(properties);
 
-    if (this.recurrence && this.recurrence.exceptionDates && this.recurrence.exceptionDates.indexOf(originalStartTime) === -1) {
-        this.recurrence.exceptionDates.push(originalStartTime);
+    if (!this.recurrence) {
+        this.recurrence = new CalendarRepeatRule();
     }
+
+    if (!this.recurrence.exceptionDates) {
+        this.recurrence.exceptionDates = [];
+    }
+
+    this.recurrence.exceptionDates.push(originalStartTime instanceof Date ? originalStartTime : new Date(originalStartTime));
 
     return exceptionEvent;
 };

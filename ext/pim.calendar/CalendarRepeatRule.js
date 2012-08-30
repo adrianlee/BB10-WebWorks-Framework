@@ -22,9 +22,11 @@ var CalendarRepeatRule,
  * @param properties
  */
 CalendarRepeatRule = function (properties) {
+    var key;
+
     this.frequency = properties && properties.frequency ? properties.frequency : null;
     this.interval = properties && properties.interval ? properties.interval : 1;
-    this.expires = properties && properties.expires ? properties.expires : null;
+    this.expires = properties && properties.expires !== undefined ? (properties.expires instanceof Date ? properties.expires : new Date(parseInt(properties.expires, 10))) : null;
     this.numberOfOccurrences = properties && properties.numberOfOccurrences ? properties.numberOfOccurrences : null;
 
     this.dayInMonth = properties && properties.dayInMonth ? properties.dayInMonth : null;
@@ -32,7 +34,16 @@ CalendarRepeatRule = function (properties) {
     this.weekInMonth = properties && properties.weekInMonth ? properties.weekInMonth : null;
     this.monthInYear = properties && properties.monthInYear ? properties.monthInYear : null;
 
-    this.exceptionDates = properties && properties.exceptionDates ? properties.exceptionDates : [];
+    this.exceptionDates = [];
+    if (properties && properties.exceptionDates) {
+        for (key in properties.exceptionDates) {
+            if (properties.exceptionDates[key] instanceof Date) {
+                this.exceptionDates.push(properties.exceptionDates[key]);
+            } else {
+                this.exceptionDates.push(new Date(parseInt(properties.exceptionDates[key], 10)));
+            }
+        }
+    }
 };
 
 Object.defineProperty(CalendarRepeatRule, "SUNDAY", {"value": 1});
