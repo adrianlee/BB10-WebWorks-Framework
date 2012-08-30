@@ -68,12 +68,10 @@ CalendarEvent.prototype.save = function (onSaveSuccess, onSaveError) {
     }
 
     if (args.start) {
-        console.log(args.start.toISOString());
         args.start = args.start.toISOString();
     }
 
     if (args.end) {
-        console.log(args.end.toISOString());
         args.end = args.end.toISOString();
     }
 
@@ -106,15 +104,12 @@ CalendarEvent.prototype.save = function (onSaveSuccess, onSaveError) {
 
         if (result._success) {
             if (successCallback) {
-                result.id = result.id.toString();
-                //contactUtils.populateContact(result);
-
-                //newContact = new CalendarEvent(result);
-                successCallback(result.id);
+                newEvent = new CalendarEvent(result.event);
+                successCallback(newEvent);
             }
         } else {
             if (errorCallback) {
-                //errorObj = new ContactError(result.code);
+                errorObj = new ContactError(result.code);
                 errorCallback(errorObj);
             }
         }
