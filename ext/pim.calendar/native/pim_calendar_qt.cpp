@@ -339,11 +339,11 @@ Json::Value PimCalendarQt::EditCalendarEvent(bbpim::CalendarEvent& calEvent, con
         }
 
         if (key == "description") {
-            calEvent.setSubject(QString::fromStdString(attributeObj[key].asString()));
+            calEvent.setBody(QString::fromStdString(attributeObj[key].asString()));
         }
 
         if (key == "summary") {
-            calEvent.setBody(QString::fromStdString(attributeObj[key].asString()));
+            calEvent.setSubject(QString::fromStdString(attributeObj[key].asString()));
         }
 
         if (key == "location") {
@@ -476,7 +476,7 @@ Json::Value PimCalendarQt::getCalendarFolderByFolderKey(bbpim::AccountId account
     // populate map that contains all calendar folders
     for (QList<bbpim::CalendarFolder>::const_iterator i = folders.constBegin(); i != folders.constEnd(); i++) {
         bbpim::CalendarFolder folder = *i;
-        
+
         if (folder.accountId() == accountId && folder.id() == folderId) {
             return getCalendarFolderJson(folder);
         }
