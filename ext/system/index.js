@@ -21,7 +21,7 @@ var Whitelist = require("../../lib/policy/whitelist").Whitelist,
     _ppsEvents = require("../../lib/pps/ppsEvents"),
     // This object is used by action map and contains links between pps object fields monitored for change in that object helper methods
     // to analyze if the value is the one callback should be invoked and fields name and value format as would appear on return.
-    // Set disableOnChange to true if not interested on change for a particular field but still interested to return its value.  
+    // Set disableOnChange to true if not interested on change for a particular field but still interested to return its value.
     _eventsMap = {
         batterycritical: {
             eventName: "batterycritical",
@@ -190,9 +190,17 @@ var Whitelist = require("../../lib/policy/whitelist").Whitelist,
             trigger: function (args) {
                 _event.trigger("regionchanged", args.region);
             }
+        },
+        fontchanged: {
+            context: require("./systemEvents"),
+            event: "fontchanged",
+            trigger: function (fontFamily, fontSize) {
+                _event.trigger("fontchanged", {'fontFamily': fontFamily, 'fontSize': fontSize});
+            }
         }
     },
-    _deviceprops;
+    _deviceprops,
+    ERROR_ID = -1;
 
 /*
  * Read the PPS object once and cache it for future calls
@@ -299,12 +307,30 @@ module.exports = {
         success(SUPPORTED_CAPABILITIES.indexOf(capability) >= 0);
     },
 
+    getFontInfo: function (success, fail, args, env) {
+        var fontFamily,
+            fontSize;
+
+        try {
+            fontFamily = window.qnx.webplatform.getApplication().getSystemFontFamily();
+            fontSize = window.qnx.webplatform.getApplication().getSystemFontSize();
+
+            success({'fontFamily': fontFamily, 'fontSize': fontSize});
+        } catch (e) {
+            fail(ERROR_ID, e);
+        }
+    },
+    
     hardwareId: function (success, fail, args, env) {
         getDeviceProperty("hardwareid", success, fail);
     },
 
     softwareVersion: function (success, fail, args, env) {
         getDeviceProperty("scmbundle", success, fail);
+    },
+
+    name: function (success, fail, args, env) {
+        getDeviceProperty("devicename", success, fail);
     },
 
     language: function (success, fail, args, env) {

@@ -79,7 +79,7 @@ describe("system index", function () {
 
         it("responds to 'batterycritical' events", function () {
             var eventName = "batterycritical",
-                args = {eventName : encodeURIComponent(eventName)}; 
+                args = {eventName : encodeURIComponent(eventName)};
             spyOn(events, "add");
             sysIndex.registerEvents(jasmine.createSpy());
             eventExt.add(null, null, args);
@@ -90,7 +90,7 @@ describe("system index", function () {
 
         it("removes 'batterycritical' events", function () {
             var eventName = "batterycritical",
-                args = {eventName : encodeURIComponent(eventName)}; 
+                args = {eventName : encodeURIComponent(eventName)};
             spyOn(events, "remove");
             eventExt.remove(null, null, args);
             expect(events.remove).toHaveBeenCalled();
@@ -99,7 +99,7 @@ describe("system index", function () {
 
         it("responds to 'batterylow' events", function () {
             var eventName = "batterylow",
-                args = {eventName : encodeURIComponent(eventName)}; 
+                args = {eventName : encodeURIComponent(eventName)};
             spyOn(events, "add");
             sysIndex.registerEvents(jasmine.createSpy());
             eventExt.add(null, null, args);
@@ -110,8 +110,8 @@ describe("system index", function () {
 
         it("removes 'batterylow' events", function () {
             var eventName = "batterylow",
-                args = {eventName : encodeURIComponent(eventName)}; 
-            spyOn(events, "remove");            
+                args = {eventName : encodeURIComponent(eventName)};
+            spyOn(events, "remove");
             eventExt.remove(null, null, args);
             expect(events.remove).toHaveBeenCalled();
             expect(events.remove.mostRecentCall.args[0].event.eventName).toEqual(eventName);
@@ -120,7 +120,7 @@ describe("system index", function () {
         it("responds to 'batterystatus' events", function () {
             var eventName = "batterystatus",
                 args = {eventName: encodeURIComponent(eventName)};
-                 
+
             spyOn(events, "add");
             sysIndex.registerEvents(jasmine.createSpy());
             eventExt.add(successCB, failCB, args);
@@ -128,69 +128,69 @@ describe("system index", function () {
             expect(events.add.mostRecentCall.args[0].event.eventName).toEqual(eventName);
             expect(events.add.mostRecentCall.args[0].trigger).toEqual(jasmine.any(Function));
             expect(successCB).toHaveBeenCalled();
-            expect(failCB).not.toHaveBeenCalled();            
+            expect(failCB).not.toHaveBeenCalled();
         });
 
         it("removes 'batterystatus' events", function () {
             var eventName = "batterystatus",
-                args = {eventName: encodeURIComponent(eventName)}; 
+                args = {eventName: encodeURIComponent(eventName)};
 
             spyOn(events, "remove");
             eventExt.remove(successCB, failCB, args);
             expect(events.remove).toHaveBeenCalled();
             expect(events.remove.mostRecentCall.args[0].event.eventName).toEqual(eventName);
-            expect(successCB).toHaveBeenCalled();            
-            expect(failCB).not.toHaveBeenCalled();            
+            expect(successCB).toHaveBeenCalled();
+            expect(failCB).not.toHaveBeenCalled();
         });
 
         it("invokes success callback when battery event name with not defined", function () {
             var eventName = "batteryeventnotdefined",
                 args = {eventName: encodeURIComponent(eventName)};
-                 
+
             spyOn(events, "add");
             sysIndex.registerEvents(jasmine.createSpy());
             eventExt.add(successCB, failCB, args);
             expect(events.add).toHaveBeenCalled();
-            expect(successCB).toHaveBeenCalled();            
-            expect(failCB).not.toHaveBeenCalled();            
+            expect(successCB).toHaveBeenCalled();
+            expect(failCB).not.toHaveBeenCalled();
         });
 
         it("invokes success callback when tring to remove battery event with name not defined", function () {
             var eventName = "batteryeventnotdefined",
                 args = {eventName: encodeURIComponent(eventName)};
-                 
+
             spyOn(events, "remove");
             eventExt.remove(successCB, failCB, args);
             expect(events.remove).toHaveBeenCalled();
-            expect(successCB).toHaveBeenCalled();            
-            expect(failCB).not.toHaveBeenCalled();            
+            expect(successCB).toHaveBeenCalled();
+            expect(failCB).not.toHaveBeenCalled();
         });
-        
+
         it("invokes fail callback when exception occured", function () {
             var eventName = "batteryeventnotdefined",
                 args = {eventName: encodeURIComponent(eventName)};
-                 
+
             spyOn(events, "add").andCallFake(function () {
                 throw "";
             });
-            
-            sysIndex.registerEvents(jasmine.createSpy());            
+
+            sysIndex.registerEvents(jasmine.createSpy());
             eventExt.add(successCB, failCB, args);
             expect(events.add).toHaveBeenCalled();
-            expect(successCB).not.toHaveBeenCalled();            
+            expect(successCB).not.toHaveBeenCalled();
             expect(failCB).toHaveBeenCalledWith(-1, jasmine.any(String));
         });
 
         it("invokes fail callback when exception occured", function () {
             var eventName = "batteryeventnotdefined",
                 args = {eventName: encodeURIComponent(eventName)};
-                 
+
             spyOn(events, "remove").andCallFake(function () {
                 throw "";
             });
             eventExt.remove(successCB, failCB, args);
             expect(events.remove).toHaveBeenCalled();
-            expect(successCB).not.toHaveBeenCalled();            
+            expect(successCB).not.toHaveBeenCalled();
             expect(failCB).toHaveBeenCalledWith(-1, jasmine.any(String));
         });
     });
@@ -208,7 +208,11 @@ describe("system index", function () {
             mockedPPS = {
                 init: jasmine.createSpy(),
                 open: jasmine.createSpy().andReturn(true),
-                read: jasmine.createSpy().andReturn({"hardwareid" : "0x8500240a", "scmbundle" : "10.0.6.99"}),
+                read: jasmine.createSpy().andReturn({
+                    "hardwareid" : "0x8500240a",
+                    "scmbundle" : "10.0.6.99",
+                    "devicename": "Device"
+                }),
                 close: jasmine.createSpy()
             };
         });
@@ -250,6 +254,23 @@ describe("system index", function () {
             expect(fail).toHaveBeenCalledWith(-1, jasmine.any(String));
         });
 
+        it("can call fail if failed to open PPS object for device name", function () {
+            var fail = jasmine.createSpy(),
+                success = jasmine.createSpy();
+
+            mockedPPS.open = jasmine.createSpy().andReturn(false);
+            spyOn(ppsUtils, "createObject").andReturn(mockedPPS);
+
+            sysIndex.name(success, fail, null, null);
+
+            expect(success).not.toHaveBeenCalled();
+            expect(fail).toHaveBeenCalledWith(-1, "Cannot open PPS object");
+            expect(mockedPPS.init).toHaveBeenCalled();
+            expect(mockedPPS.open).toHaveBeenCalledWith(path, mode);
+            expect(mockedPPS.read).not.toHaveBeenCalled();
+            expect(mockedPPS.close).toHaveBeenCalled();
+        });
+
         it("can call success with hardwareId", function () {
             var success = jasmine.createSpy();
 
@@ -277,6 +298,23 @@ describe("system index", function () {
             expect(mockedPPS.read).not.toHaveBeenCalled();
             expect(mockedPPS.close).not.toHaveBeenCalled();
             expect(success).toHaveBeenCalledWith("10.0.6.99");
+        });
+
+        it("can call success with name", function () {
+            var fail = jasmine.createSpy(),
+                success = jasmine.createSpy();
+
+            spyOn(ppsUtils, "createObject").andReturn(mockedPPS);
+
+            sysIndex.name(success, fail, null, null);
+
+            // The PPS objects should have been init in the test above; once the PPS has been read it is cached
+            expect(mockedPPS.init).not.toHaveBeenCalled();
+            expect(mockedPPS.open).not.toHaveBeenCalledWith(path, mode);
+            expect(mockedPPS.read).not.toHaveBeenCalled();
+            expect(mockedPPS.close).not.toHaveBeenCalled();
+            expect(fail).not.toHaveBeenCalled();
+            expect(success).toHaveBeenCalledWith("Device");
         });
     });
 
@@ -457,6 +495,89 @@ describe("system index", function () {
             eventExt.remove(null, null, args);
             expect(events.remove).toHaveBeenCalled();
             expect(events.remove.mostRecentCall.args[0].event.eventName).toEqual(eventName);
+        });
+    });
+
+    describe("font", function () {
+        describe("font methods", function () {
+            var fontFamily = "courier",
+                fontSize = 10,
+                mockedFontFamily,
+                mockedFontSize,
+                ERROR_ID = -1;
+
+            beforeEach(function () {
+                successCB = jasmine.createSpy("Success Callback");
+                failCB = jasmine.createSpy("Fail Callback");
+                mockedFontFamily = jasmine.createSpy("getSystemFontFamily").andReturn(fontFamily);
+                mockedFontSize = jasmine.createSpy("getSystemFontSize").andReturn(fontSize);
+                GLOBAL.window = GLOBAL;
+                GLOBAL.window.qnx = {
+                    webplatform: {
+                        getApplication: function () {
+                            return {
+                                getSystemFontFamily: mockedFontFamily,
+                                getSystemFontSize: mockedFontSize
+                            };
+                        }
+                    }
+                };
+            });
+
+            afterEach(function () {
+                successCB = null;
+                failCB = null;
+                mockedFontFamily = null;
+                mockedFontSize = null;
+            });
+
+            it("can call fontFamily and fontSize the qnx.weblplatform Application", function () {
+                sysIndex.getFontInfo(successCB, null, null, null);
+                expect(mockedFontFamily).toHaveBeenCalled();
+                expect(mockedFontSize).toHaveBeenCalled();
+            });
+
+            it("can call success callback when getFontInfo call succeed", function () {
+                sysIndex.getFontInfo(successCB, failCB, null, null);
+                expect(successCB).toHaveBeenCalledWith({'fontFamily': fontFamily, 'fontSize': fontSize});
+                expect(failCB).not.toHaveBeenCalled();
+            });
+
+            it("can call fail callback when getFontInfo call failed", function () {
+                sysIndex.getFontInfo(null, failCB, null, null);
+                expect(successCB).not.toHaveBeenCalledWith({'fontFamily': fontFamily, 'fontSize': fontSize});
+                expect(failCB).toHaveBeenCalledWith(ERROR_ID, jasmine.any(Object));
+            });
+        });
+
+        describe("fontchanged event", function () {
+            beforeEach(function () {
+                spyOn(utils, "loadExtensionModule").andCallFake(function () {
+                    return eventExt;
+                });
+            });
+
+            it("responds to 'fontchanged' events", function () {
+                var eventName = "fontchanged",
+                    args = {eventName : encodeURIComponent(eventName)};
+
+                spyOn(events, "add");
+                sysIndex.registerEvents(jasmine.createSpy());
+                eventExt.add(null, null, args);
+                expect(events.add).toHaveBeenCalled();
+                expect(events.add.mostRecentCall.args[0].event).toEqual(eventName);
+                expect(events.add.mostRecentCall.args[0].trigger).toEqual(jasmine.any(Function));
+            });
+
+            it("removes 'fontchanged' event", function () {
+                var eventName = "fontchanged",
+                    args = {eventName : encodeURIComponent(eventName)};
+
+                spyOn(events, "remove");
+                eventExt.remove(null, null, args);
+                expect(events.remove).toHaveBeenCalled();
+                expect(events.remove.mostRecentCall.args[0].event).toEqual(eventName);
+            });
         });
     });
 });

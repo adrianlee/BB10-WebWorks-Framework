@@ -45,6 +45,10 @@ _self.hasCapability = function (capability) {
     return window.webworks.execSync(ID, "hasCapability", {"capability": capability});
 };
 
+_self.getFontInfo = function () {
+    return window.webworks.execSync(ID, "getFontInfo");
+};
+
 defineGetter("language");
 defineGetter("region");
 
@@ -52,6 +56,7 @@ window.webworks.defineReadOnlyField(_self, "ALLOW", 0);
 window.webworks.defineReadOnlyField(_self, "DENY", 1);
 window.webworks.defineReadOnlyField(_self, "hardwareId", getFieldValue("hardwareId"));
 window.webworks.defineReadOnlyField(_self, "softwareVersion", getFieldValue("softwareVersion"));
+window.webworks.defineReadOnlyField(_self, "name", getFieldValue("name"));
 
 window.webworks.execSync(ID, "registerEvents", null);
 

@@ -33,4 +33,26 @@ describe("blackberry.identity", function () {
     it('blackberry.identity.uuid should be read-only', function () {
         testIdentityReadOnly("uuid");
     });
+
+    it("blackberry.identity.IMEI should exist", function () {
+        testIdentityValue("IMEI");
+        expect(blackberry.identity.IMEI).toMatch(/^[0-9]{15,16}$/);
+    });
+
+    it("blackberry.identity.IMEI should be read-only", function () {
+        testIdentityReadOnly("IMEI");
+    });
+
+    /* This has been disabled because the device and the application
+     * need to be specially configured in order for this test to work.*/
+    xit("blackberry.identity.IMSI should exist", function () {
+        testIdentityValue("IMSI");
+        expect(blackberry.identity.IMSI).toMatch(/^[0-9]{14,15}$/);
+    });
+
+    /* This has been disabled because the device and the application
+     * need to be specially configured in order for this test to work.*/
+    xit("blackberry.identity.IMSI should be read-only", function () {
+        testIdentityReadOnly("IMSI");
+    });
 });

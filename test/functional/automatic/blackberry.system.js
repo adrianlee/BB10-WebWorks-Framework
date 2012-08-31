@@ -67,6 +67,22 @@ describe("blackberry.system", function () {
         expect(blackberry.system.hasCapability("bake.cookies")).toBeFalsy();
     });
 
+    describe("font api", function () {
+        it("getFontInfo should be defined", function () {
+            expect(blackberry.system.getFontInfo).toBeDefined();
+        });
+
+        it("getFontInfo should return family and size of system font", function () {
+            var fontInfo = blackberry.system.getFontInfo();
+
+            expect(fontInfo).toBeDefined();
+            expect(fontInfo.fontFamily).toBeDefined();
+            expect(typeof fontInfo.fontFamily === "string").toBeTruthy();
+            expect(fontInfo.fontSize).toBeDefined();
+            expect(typeof fontInfo.fontSize === 'number').toBeTruthy();
+        });
+    });
+
     describe("device properties", function () {
         it('blackberry.system.hardwareId should exist', function () {
             testSystemValue("hardwareId");
@@ -82,6 +98,16 @@ describe("blackberry.system", function () {
 
         it('blackberry.system.softwareVersion should be read-only', function () {
             testSystemReadOnly("softwareVersion");
+        });
+
+        it("blackberry.system.name should exist", function () {
+            testSystemValue("name");
+            expect(blackberry.system.name).toEqual(jasmine.any(String));
+            expect(blackberry.system.name).not.toEqual("");
+        });
+
+        it("blackberry.system.name should be read only", function () {
+            testSystemReadOnly("name");
         });
 
         it('blackberry.system.region should exist', function () {

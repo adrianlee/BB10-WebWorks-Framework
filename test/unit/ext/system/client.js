@@ -56,6 +56,17 @@ describe("system client", function () {
         expect(result).toBeTruthy();
     });
 
+    it("getFontInfo", function () {
+        var result;
+
+        spyOn(mockedWebworks, "execSync").andReturn(true);
+
+        result = sysClient.getFontInfo();
+
+        expect(mockedWebworks.execSync).toHaveBeenCalledWith(ID, "getFontInfo");
+        expect(result).toBeTruthy();
+    });
+
     it("ALLOW", function () {
         expect(mockedWebworks.defineReadOnlyField).toHaveBeenCalledWith(sysClient, "ALLOW", 0);
     });
@@ -67,7 +78,8 @@ describe("system client", function () {
     describe("device properties and registerEvents", function () {
         var fields = [
                 "hardwareId",
-                "softwareVersion"
+                "softwareVersion",
+                "name"
             ],
             execSyncArgs = [];
 
@@ -107,9 +119,14 @@ describe("system client", function () {
             expect(mockedWebworks.execSync.argsForCall).toContain(execSyncArgs[fields.indexOf("softwareVersion")]);
         });
 
+        it("name", function () {
+            expect(mockedWebworks.execSync.argsForCall).toContain(execSyncArgs[fields.indexOf("name")]);
+        });
+
         it("readonly fields set", function () {
             expect(mockedWebworks.defineReadOnlyField).toHaveBeenCalledWith(sysClient, "hardwareId", null);
             expect(mockedWebworks.defineReadOnlyField).toHaveBeenCalledWith(sysClient, "softwareVersion", null);
+            expect(mockedWebworks.defineReadOnlyField).toHaveBeenCalledWith(sysClient, "name", null);
         });
     });
 
