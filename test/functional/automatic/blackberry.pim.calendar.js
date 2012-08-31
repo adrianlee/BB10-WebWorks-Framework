@@ -19,7 +19,8 @@ var cal,
     CalendarFolder,
     CalendarFindOptions,
     CalendarEventFilter,
-    CalendarError;
+    CalendarError,
+    calEvent;
     // Attendee
     // CalendarRepeatRule
 
@@ -160,6 +161,63 @@ describe("blackberry.pim.calendar", function () {
             }, false);
 
             expect(homeFolderFound).toBeTruthy();
+        });
+    });
+
+    describe("blackberry.pim.calendar.createEvents", function () {
+        //var calEvent;
+
+        it('should return a CalendarEvent object', function () {
+            // TODO have to fix client.js to name it createEvents
+            var start = new Date("Dec 31, 2012"),
+                end = new Date("Jan 01, 2013"),
+                summary = "WebWorks test create event 1",
+                location = "Location 1";
+
+            calEvent = cal.create({
+                "summary": summary,
+                "location": location,
+                "allDay": true,
+                "start": start,
+                "end": end
+            });
+
+            expect(calEvent).toBeDefined();
+            expect(calEvent.summary).toBe(summary);
+            expect(calEvent.location).toBe(location);
+            expect(calEvent.allDay).toBeTruthy();
+            expect(calEvent.start).toBe(start);
+            expect(calEvent.end).toBe(end);
+            expect(typeof calEvent.save).toBe("function");
+            expect(typeof calEvent.remove).toBe("function");
+            expect(typeof calEvent.createExceptionEvent).toBe("function");
+        });
+
+        it('can call save to persist the event on the device ', function () {
+            var called = false,
+                successCb = jasmine.createSpy().andCallFake(function (created) {
+                    called = true;
+                    expect(created).toBeDefined();
+                    expect(typeof created.id).toBe("string");
+                    expect(created.id).not.toBe("");
+                    expect(created.start).toBe(new Date(Date.parse("Dec 31, 2012")));
+                    expect(created.end).toBe(new Date(Date.parse("Jan 01, 2013")));
+                    expect(created.allDay).toBeTruthy();
+                    expect(created.summary).toBe("WebWorks test create event 1");
+                    expect(created.location).toBe("Location 1");
+                }),
+                errorCb = jasmine.createSpy();
+
+            calEvent.save(successCb, errorCb);
+
+            waitsFor(function () {
+                return called;
+            }, "Event not saved to device calendar", 15000);
+
+            runs(function () {
+                expect(successCb).toHaveBeenCalled();
+                expect(errorCb).not.toHaveBeenCalled();
+            });
         });
     });
 

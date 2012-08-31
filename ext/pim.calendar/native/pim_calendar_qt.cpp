@@ -185,8 +185,7 @@ Json::Value PimCalendarQt::GetTimezones()
 
 Json::Value PimCalendarQt::CreateCalendarEvent(const Json::Value& args)
 {
-    //const Json::Value::Members attributeKeys = attributeObj.getMemberNames();
-    //Json::Value contactFields;
+    qDebug() << "create!";
 
     Json::Value returnObj;
 
@@ -211,10 +210,17 @@ Json::Value PimCalendarQt::CreateCalendarEvent(const Json::Value& args)
     ev.setStartTime(startTime);
     ev.setEndTime(endTime);
     // TODO(rtse): timezone
+    // TODO(rtse): allDay
     ev.setSubject(args["summary"].asString().c_str());
     ev.setLocation(args["location"].asString().c_str());
 
-    ev.setBusyStatus(bbpim::BusyStatus::Type(args.get("transparency", bbpim::BusyStatus::Tentative).asInt()));
+    qDebug() << "Before transparency";
+
+    if (args.isMember("transparency") && args["transparency"].isInt()) {
+        ev.setBusyStatus(bbpim::BusyStatus::Type(args.get("transparency", bbpim::BusyStatus::Tentative).asInt()));
+    }
+
+    qDebug() << "After transparency";
 
     QList<QDateTime> exceptionDates;
 
@@ -259,27 +265,30 @@ Json::Value PimCalendarQt::CreateCalendarEvent(const Json::Value& args)
         ev.setRecurrence(recurrence);
     }
 
-    for (int i = 0; i < args["attendees"].size(); i++) {
-        bbpim::Attendee attendee;
-        Json::Value attendee_json = args["attendees"][i];
+    qDebug() << "Before attendee";
 
-        attendee.setName(QString(attendee_json.get("name", "").asCString()));
-        attendee.setEmail(QString(attendee_json.get("email", "").asCString()));
-        attendee.setType((bbpim::Attendee::Type)(attendee_json.get("type", bbpim::Attendee::Host).asInt()));
-        attendee.setRole((bbpim::AttendeeRole::Type)(attendee_json.get("role", bbpim::AttendeeRole::Chair).asInt()));
-        attendee.setStatus((bbpim::AttendeeStatus::Type)(attendee_json.get("status", bbpim::AttendeeStatus::Unknown).asInt()));
-        attendee.setContactId(attendee_json.get("contactId", 0).asInt());
-        attendee.setOwner(attendee_json.get("owner", false).asBool());
+    if (args.isMember("attendee")) {
+        for (int i = 0; i < args["attendees"].size(); i++) {
+            bbpim::Attendee attendee;
+            Json::Value attendee_json = args["attendees"][i];
 
-        if (!attendee.isValid()) {
-            returnObj["_success"] = false;
-            returnObj["code"] = UNKNOWN_ERROR;
-            return returnObj;
+            attendee.setName(QString(attendee_json.get("name", "").asCString()));
+            attendee.setEmail(QString(attendee_json.get("email", "").asCString()));
+            attendee.setType((bbpim::Attendee::Type)(attendee_json.get("type", bbpim::Attendee::Host).asInt()));
+            attendee.setRole((bbpim::AttendeeRole::Type)(attendee_json.get("role", bbpim::AttendeeRole::Chair).asInt()));
+            attendee.setStatus((bbpim::AttendeeStatus::Type)(attendee_json.get("status", bbpim::AttendeeStatus::Unknown).asInt()));
+            attendee.setContactId(attendee_json.get("contactId", 0).asInt());
+            attendee.setOwner(attendee_json.get("owner", false).asBool());
+
+            if (!attendee.isValid()) {
+                returnObj["_success"] = false;
+                returnObj["code"] = UNKNOWN_ERROR;
+                return returnObj;
+            }
+
+            ev.addAttendee(attendee);
         }
-
-        ev.addAttendee(attendee);
     }
-
 
     bbpim::Notification notification;
     notification.setComments(QString("This is a test event created by the WebWorks PIM Calendar API."));
@@ -298,7 +307,8 @@ Json::Value PimCalendarQt::CreateCalendarEvent(const Json::Value& args)
         ev.setId(args["parentId"].asInt());
         service.createRecurrenceException(ev, QDateTime::fromString(args["originalStartTime"].asCString(), "yyyy-MM-dd'T'hh:mm:ss'.000Z'"), notification);
     } else {
-        service.createEvent(ev, notification);
+        //service.createEvent(ev, notification);
+        service.createEvent(ev);
     }
 
     for (int i = 0; i < exceptionDates.size(); i++) {

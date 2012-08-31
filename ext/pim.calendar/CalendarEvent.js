@@ -58,43 +58,44 @@ CalendarEvent = function (properties) {
 CalendarEvent.prototype.save = function (onSaveSuccess, onSaveError) {
     var args = {},
         key,
+        innerKey,
         successCallback = onSaveSuccess,
         errorCallback = onSaveError,
         saveCallback;
 
-    Object.getOwnPropertyNames(this).forEach(function (key) {
-        if (this[key]) {
+    for (key in this) {
+        if (this.hasOwnProperty(key) && this[key] !== null) {
             if (Object.prototype.toString.call(this[key]) === "[object Object]") {
                 args[key] = {};
 
-                Object.getOwnPropertyNames(this[key]).forEach(function (innerKey) {
-                    if (this[key][innerKey]) {
+                for (innerKey in this[key]) {
+                    if (this[key][innerKey] !== null) {
                         args[key][innerKey] = this[key][innerKey];
                     }
-                });
+                }
             } else if (Object.prototype.toString.call(this[key]) === "[object Date]") {
                 args[key] = this[key].toISOString();
             } else {
                 args[key] = this[key];
             }
         }
-    });
+    }
 
     if (args.attendees) {
-        args.attendees.forEach(function (att) {
-            if (att.contactId && !window.isNaN(att.contactId)) {
-                att.contactId = window.parseInt(att.contactId);
+        for (key in args.attendees) {
+            if (args.attendees[key].contactId && !window.isNaN(args.attendees[key].contactId)) {
+                args.attendees[key].contactId = window.parseInt(args.attendees[key].contactId);
             }
 
-            if (att.id && !window.isNaN(att.id)) {
-                att.id = window.parseInt(att.id);
+            if (args.attendees[key].id && !window.isNaN(args.attendees[key].id)) {
+                args.attendees[key].id = window.parseInt(args.attendees[key].id);
             }
-        });
+        }
     }
 
     if (args.recurrence) {
         if (args.recurrence.exceptionDates) {
-            for (key = 0; key < args.recurrence.exceptionDates.length; key++) {
+            for (key in args.recurrence.exceptionDates) {
                 args.recurrence.exceptionDates[key] = args.recurrence.exceptionDates[key].toISOString();
             }
         }
