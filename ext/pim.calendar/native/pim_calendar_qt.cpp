@@ -322,7 +322,13 @@ Json::Value PimCalendarQt::DeleteCalendarEvent(const Json::Value& calEventObj)
         bbpim::CalendarEvent event = service.event(accountId, eventId);
 
         if (event.isValid()) {
-            service.deleteEvent(event);
+            bbpim::Notification notification;
+            notification.setComments(QString("This event was deleted by the WebWorks PIM Calendar API."));
+            notification.setNotifyAll(true);
+            notification.setAccountId(event.accountId());
+            notification.setMessageAccountId(event.accountId());
+
+            service.deleteEvent(event, notification);
             returnObj["_success"] = true;
             return returnObj;
         }

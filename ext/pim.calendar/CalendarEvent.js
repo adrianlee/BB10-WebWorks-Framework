@@ -44,7 +44,7 @@ CalendarEvent = function (properties) {
     this.summary = properties && properties.summary !== undefined ? properties.summary : "";
     this.timezone = properties && properties.timezone !== undefined ? properties.timezone : "";
     this.transparency = properties && properties.transparency !== undefined ? properties.transparency : "";
-    this.originalStartTime = properties && properties.originalStartTime !== undefined ? (properties.originalStartTime instanceof Date ? properties.end : new Date(parseInt(properties.end, 10))) : null;
+    this.originalStartTime = properties && properties.originalStartTime !== undefined ? (properties.originalStartTime instanceof Date ? properties.originalStartTime : new Date(parseInt(properties.originalStartTime, 10))) : null;
 
     privateId = properties && properties.id !== undefined ? properties.id : null;
     privateParentId = properties && properties.parentId !== undefined ? properties.parentId : null;
@@ -161,7 +161,7 @@ CalendarEvent.prototype.remove = function (onRemoveSuccess, onRemoveError) {
         errorCallback = onRemoveError,
         removeCallback;
 
-    args.accountId = window.parseInt(this.accountId);
+    args.accountId = window.parseInt(this.folder.accountId);
     args.calEventId = window.parseInt(this.id);
     args._eventId = utils.guid();
 
