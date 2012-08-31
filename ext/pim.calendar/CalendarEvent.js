@@ -44,6 +44,7 @@ CalendarEvent = function (properties) {
     this.summary = properties && properties.summary !== undefined ? properties.summary : "";
     this.timezone = properties && properties.timezone !== undefined ? properties.timezone : "";
     this.transparency = properties && properties.transparency !== undefined ? properties.transparency : "";
+    this.originalStartTime = properties && properties.originalStartTime !== undefined ? (properties.originalStartTime instanceof Date ? properties.end : new Date(parseInt(properties.end, 10))) : null;
 
     privateId = properties && properties.id !== undefined ? properties.id : null;
     privateParentId = properties && properties.parentId !== undefined ? properties.parentId : null;
@@ -210,6 +211,7 @@ CalendarEvent.prototype.createExceptionEvent = function (originalStartTime) {
 
     properties.id = null;
     properties.parentId = this.id;
+    properties.originalStartTime = originalStartTime;
 
     exceptionEvent = new CalendarEvent(properties);
 

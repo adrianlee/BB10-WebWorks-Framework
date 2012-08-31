@@ -276,9 +276,6 @@ Json::Value PimCalendarQt::CreateCalendarEvent(const Json::Value& args)
         ev.addAttendee(attendee);
     }
 
-    if (args.isMember("parentId") && !args["parentId"].isNull() && args["parentId"].asInt() != 0) {
-        ev.setParentId(args["parentId"].asInt());
-    }
 
     bbpim::Notification notification;
     notification.setComments(QString("This is a test event created by the WebWorks PIM Calendar API."));
@@ -286,18 +283,20 @@ Json::Value PimCalendarQt::CreateCalendarEvent(const Json::Value& args)
     notification.setAccountId(ev.accountId());
     notification.setMessageAccountId(ev.accountId());
 
-    service.createEvent(ev, notification);
-
-    /*
     if (args.isMember("parentId") && !args["parentId"].isNull() && args["parentId"].asInt() != 0) {
         // This is a recurrence exception event
+
+        if (!args.isMember("originalStartTime") || args["originalStartTime"].isNull()) {
+            returnObj["_success"] = false;
+            returnObj["code"] = INVALID_ARGUMENT_ERROR;
+            return returnObj;
+        }
+
         ev.setId(args["parentId"].asInt());
-        service.createRecurrenceException(ev, QDateTime(), notification);
-        //service.createRecurrenceException(ev, QDateTime::fromString(args["originalStartTime"].asCString(), "yyyy-MM-dd'T'hh:mm:ss'.000Z'"));
+        service.createRecurrenceException(ev, QDateTime::fromString(args["originalStartTime"].asCString(), "yyyy-MM-dd'T'hh:mm:ss'.000Z'"), notification);
     } else {
         service.createEvent(ev, notification);
     }
-    */
 
     if (ev.isValid()) {
         returnObj["event"] = populateEvent(ev, false);
