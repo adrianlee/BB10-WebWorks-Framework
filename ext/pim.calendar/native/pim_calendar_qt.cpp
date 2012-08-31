@@ -216,6 +216,8 @@ Json::Value PimCalendarQt::CreateCalendarEvent(const Json::Value& args)
 
     ev.setBusyStatus(bbpim::BusyStatus::Type(args.get("transparency", bbpim::BusyStatus::Tentative).asInt()));
 
+    QList<QDateTime> exceptionDates;
+
     if (args.isMember("recurrence") && !args["recurrence"].isNull()) {
         Json::Value recurrence_json = args["recurrence"];
 
@@ -242,8 +244,10 @@ Json::Value PimCalendarQt::CreateCalendarEvent(const Json::Value& args)
         recurrence.setDayInMonth(recurrence_json.get("dayInMonth", startTime.date().day()).asInt());
         recurrence.setMonthInYear(recurrence_json.get("monthInYear", startTime.date().month()).asInt());
 
+        // Note: exceptionDates cannot be added manually. They must be added using CalendarService::createRecurrenceExclusion
         for (int i = 0; i < recurrence_json["exceptionDates"].size(); i++) {
-            recurrence.addException(QDateTime::fromString(recurrence_json["exceptionDates"][i].asCString(), "yyyy-MM-dd'T'hh:mm:ss'.000Z'"));
+            //recurrence.addException(QDateTime::fromString(recurrence_json["exceptionDates"][i].asCString(), "yyyy-MM-dd'T'hh:mm:ss'.000Z'"));
+            exceptionDates.append(QDateTime::fromString(recurrence_json["exceptionDates"][i].asCString(), "yyyy-MM-dd'T'hh:mm:ss'.000Z'"));
         }
 
         if (!recurrence.isValid()) {
@@ -285,7 +289,6 @@ Json::Value PimCalendarQt::CreateCalendarEvent(const Json::Value& args)
 
     if (args.isMember("parentId") && !args["parentId"].isNull() && args["parentId"].asInt() != 0) {
         // This is a recurrence exception event
-
         if (!args.isMember("originalStartTime") || args["originalStartTime"].isNull()) {
             returnObj["_success"] = false;
             returnObj["code"] = INVALID_ARGUMENT_ERROR;
@@ -296,6 +299,14 @@ Json::Value PimCalendarQt::CreateCalendarEvent(const Json::Value& args)
         service.createRecurrenceException(ev, QDateTime::fromString(args["originalStartTime"].asCString(), "yyyy-MM-dd'T'hh:mm:ss'.000Z'"), notification);
     } else {
         service.createEvent(ev, notification);
+    }
+
+    for (int i = 0; i < exceptionDates.size(); i++) {
+        bbpim::CalendarEvent exceptionEvent;
+        exceptionEvent.setStartTime(exceptionDates[i]);
+        exceptionEvent.setId(ev.id());
+        exceptionEvent.setAccountId(ev.accountId());
+        service.createRecurrenceExclusion(exceptionEvent, notification);
     }
 
     if (ev.isValid()) {
@@ -345,6 +356,7 @@ Json::Value PimCalendarQt::EditCalendarEvent(bbpim::CalendarEvent& calEvent, con
     Json::Value eventFields;
 
     Json::Value returnObj;
+    QList<QDateTime> exceptionDates;
 
     // TODO Create some stringToEnumMap to use switch or private function?
 
@@ -432,9 +444,8 @@ Json::Value PimCalendarQt::EditCalendarEvent(bbpim::CalendarEvent& calEvent, con
         }
 
         if (key == "attendees") {
-            // TODO convert attributeObj[key] to QList<Attendee>
             QList<bbpim::Attendee> attendees;
-            // calEvent.setAttendees(attendees);
+
             for (int i = 0; i < attributeObj[key].size(); i++) {
                 bbpim::Attendee attendee;
                 Json::Value attendee_json = attributeObj[key][i];
@@ -460,7 +471,6 @@ Json::Value PimCalendarQt::EditCalendarEvent(bbpim::CalendarEvent& calEvent, con
         }
 
         if (key == "recurrence") {
-            /*
             Json::Value recurrence_json = attributeObj[key];
 
             if (recurrence_json["frequency"].isNull()) {
@@ -469,7 +479,7 @@ Json::Value PimCalendarQt::EditCalendarEvent(bbpim::CalendarEvent& calEvent, con
                 return returnObj;
             }
 
-            bbpim::Recurrence recurrence;
+            bbpim::Recurrence recurrence = calEvent.recurrence();
             recurrence.setFrequency(bbpim::Frequency::Type(recurrence_json["frequency"].asInt()));
             recurrence.setInterval(recurrence_json.get("interval", 1).asInt());
 
@@ -487,8 +497,11 @@ Json::Value PimCalendarQt::EditCalendarEvent(bbpim::CalendarEvent& calEvent, con
             recurrence.setDayInMonth(recurrence_json.get("dayInMonth", startTime.date().day()).asInt());
             recurrence.setMonthInYear(recurrence_json.get("monthInYear", startTime.date().month()).asInt());
 
+            recurrence.resetExceptions();
+
             for (int i = 0; i < recurrence_json["exceptionDates"].size(); i++) {
-                recurrence.addException(QDateTime::fromString(recurrence_json["exceptionDates"][i].asCString(), "yyyy-MM-dd'T'hh:mm:ss'.000Z'"));
+                //recurrence.addException(QDateTime::fromString(recurrence_json["exceptionDates"][i].asCString(), "yyyy-MM-dd'T'hh:mm:ss'.000Z'"));
+                exceptionDates.append(QDateTime::fromString(recurrence_json["exceptionDates"][i].asCString(), "yyyy-MM-dd'T'hh:mm:ss'.000Z'"));
             }
 
             if (!recurrence.isValid()) {
@@ -498,12 +511,19 @@ Json::Value PimCalendarQt::EditCalendarEvent(bbpim::CalendarEvent& calEvent, con
             }
 
             calEvent.setRecurrence(recurrence);
-            */
         }
     }
 
     bbpim::CalendarService service;
     service.updateEvent(calEvent, bbpim::Notification());
+
+    for (int i = 0; i < exceptionDates.size(); i++) {
+        bbpim::CalendarEvent exceptionEvent;
+        exceptionEvent.setStartTime(exceptionDates[i]);
+        exceptionEvent.setId(calEvent.id());
+        exceptionEvent.setAccountId(calEvent.accountId());
+        service.createRecurrenceExclusion(exceptionEvent, bbpim::Notification());
+    }
 
     if (calEvent.isValid()) {
         returnObj["event"] = populateEvent(calEvent, false);
