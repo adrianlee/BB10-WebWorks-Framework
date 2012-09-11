@@ -92,13 +92,13 @@ Json::Value PimCalendarQt::Find(const Json::Value& args)
         bbpim::CalendarService service;
         QList<bbpim::CalendarEvent> events = service.events(searchParams);
 
-        Json::Value results;
+        Json::Value searchResults;
         Json::Value folders;
 
         for (QList<bbpim::CalendarEvent>::const_iterator i = events.constBegin(); i != events.constEnd(); i++) {
             bbpim::CalendarEvent event = *i;
             lookupCalendarFolderByFolderKey(event.accountId(), event.folderId());
-            results.append(populateEvent(event, true));
+            searchResults.append(populateEvent(event, true));
         }
 
         for (std::map<std::string, bbpim::CalendarFolder>::const_iterator j = _foldersMap.begin(); j != _foldersMap.end(); j++) {
@@ -108,7 +108,7 @@ Json::Value PimCalendarQt::Find(const Json::Value& args)
         }
 
         returnObj["_success"] = true;
-        returnObj["events"] = results;
+        returnObj["events"] = searchResults;
         returnObj["folders"] = folders;
     } else {
         returnObj["_success"] = false;
@@ -210,7 +210,7 @@ Json::Value PimCalendarQt::CreateCalendarEvent(const Json::Value& args)
     ev.setStartTime(startTime);
     ev.setEndTime(endTime);
     // TODO(rtse): timezone
-    // TODO(rtse): allDay
+    ev.setAllDay(args["allDay"].asBool());
     ev.setSubject(args["summary"].asString().c_str());
     ev.setLocation(args["location"].asString().c_str());
 

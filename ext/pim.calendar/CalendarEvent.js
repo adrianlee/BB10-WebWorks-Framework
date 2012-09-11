@@ -161,7 +161,7 @@ CalendarEvent.prototype.remove = function (onRemoveSuccess, onRemoveError) {
         errorCallback = onRemoveError,
         removeCallback;
 
-    args.accountId = window.parseInt(this.folder.accountId);
+    args.accountId = window.parseInt(this.folder.accountId); // TODO folder is not set unless the developer re-save the event upon creation, need to check this
     args.calEventId = window.parseInt(this.id);
     args._eventId = utils.guid();
 
