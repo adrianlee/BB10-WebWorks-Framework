@@ -200,8 +200,8 @@ describe("blackberry.pim.calendar", function () {
                     expect(created).toBeDefined();
                     expect(typeof created.id).toBe("string");
                     expect(created.id).not.toBe("");
-                    expect(created.start).toBe(new Date(Date.parse("Dec 31, 2012")));
-                    expect(created.end).toBe(new Date(Date.parse("Jan 01, 2013")));
+                    expect(created.start.toISOString()).toBe(new Date(Date.parse("Dec 31, 2012")).toISOString());
+                    expect(created.end.toISOString()).toBe(new Date(Date.parse("Jan 01, 2013")).toISOString());
                     expect(created.allDay).toBeTruthy();
                     expect(created.summary).toBe("WebWorks test create event 1");
                     expect(created.location).toBe("Location 1");
@@ -265,6 +265,48 @@ describe("blackberry.pim.calendar", function () {
 
             expect(errorCb).toHaveBeenCalledWith(new CalendarError(CalendarError.INVALID_ARGUMENT_ERROR));
             expect(successCb).not.toHaveBeenCalled();
+        });
+
+        it('can find event by prefix', function () {
+            var called = false,
+                successCb = jasmine.createSpy().andCallFake(function (events) {
+                    called = true;
+                    expect(events.length).toBe(1);
+                    expect(events[0].summary).toBe(summary);
+                    expect(events[0].location).toBe(location);
+                    expect(events[0].allDay).toBeTruthy();
+                }),
+                errorCb = jasmine.createSpy().andCallFake(function () {
+                    called = true;
+                }),
+                filter = new CalendarEventFilter("WebWorksTest abc", null, null, null, false),
+                findOptions = new CalendarFindOptions(filter, null, CalendarFindOptions.DETAIL_FULL),
+                start = new Date("Dec 31, 2012"),
+                end = new Date("Jan 01, 2013"),
+                summary = "WebWorksTest abc",
+                location = "Home",
+                created;
+
+            created = cal.create({
+                "summary": summary,
+                "location": location,
+                "allDay": true,
+                "start": start,
+                "end": end
+            });
+
+            created.save(function () {
+                cal.findEvents(successCb, errorCb, findOptions);
+            });
+
+            waitsFor(function () {
+                return called;
+            }, "Find callback not invoked", 15000);
+
+            runs(function () {
+                expect(successCb).toHaveBeenCalled();
+                expect(errorCb).not.toHaveBeenCalled();
+            });
         });
     });
 });
