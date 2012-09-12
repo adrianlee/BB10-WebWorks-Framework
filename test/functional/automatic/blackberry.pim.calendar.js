@@ -262,7 +262,7 @@ describe("blackberry.pim.calendar", function () {
                 summary = "WebWorksTest create event 1",
                 location = "Location 1";
 
-            calEvent = cal.create({
+            calEvent = cal.createEvent({
                 "summary": summary,
                 "location": location,
                 "allDay": true,
@@ -350,6 +350,47 @@ describe("blackberry.pim.calendar", function () {
         });
     });
 
+    describe("blackberry.pim.calendar.createEvent can create recurring event", function () {
+        var recEvent;
+
+        it('can save a recurring event on device', function () {
+            var start = new Date("Jan 6, 2013, 12:00"),
+                end = new Date("Jan 6, 2013, 12:30"),
+                location = "some location",
+                summary = "WebWorksTest awesome recurring event",
+                rule = new CalendarRepeatRule({
+                    "frequency": CalendarRepeatRule.FREQUENCY_MONTHLY,
+                    "expires": new Date(Date.parse("Dec 31, 2013")),
+                    "numberOfOccurrences": 4
+                }),
+                called = false,
+                successCb = jasmine.createSpy().andCallFake(function (created) {
+                    called = true;
+                    expect(created.summary).toBe(summary);
+                    expect(created.location).toBe(location);
+                    expect(created.recurrence).toBeDefined();
+                    expect(created.recurrence.frequency).toBe(CalendarRepeatRule.FREQUENCY_MONTHLY);
+                    expect(created.recurrence.numberOfOccurrences).toBe(4);
+                    recEvent = created;
+                }),
+                errorCb = jasmine.createSpy(function (error) {
+                    called = true;
+                });
+
+            recEvent = cal.createEvent({"summary": summary, "location": location, "start": start, "end": end, "recurrence": rule});
+            recEvent.save(successCb, errorCb);
+
+            waitsFor(function () {
+                return called;
+            }, "Event not removed from device calendar", 15000);
+
+            runs(function () {
+                expect(successCb).toHaveBeenCalled();
+                expect(errorCb).not.toHaveBeenCalled();
+            });
+        });
+    });
+
     describe("blackberry.pim.calendar.findEvents", function () {
         var doneTestingFind = false;
 
@@ -425,7 +466,7 @@ describe("blackberry.pim.calendar", function () {
                 }),
                 created;
 
-            created = cal.create({
+            created = cal.createEvent({
                 "summary": summary,
                 "location": location,
                 "allDay": true,

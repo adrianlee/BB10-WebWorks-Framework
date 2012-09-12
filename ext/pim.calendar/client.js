@@ -100,7 +100,7 @@ function getFolderKeyList(folders) {
     return folderKeys;
 }
 
-_self.create = function (properties, folder) {
+_self.createEvent = function (properties, folder) {
     var args = {},
         key;
 
