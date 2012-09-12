@@ -211,8 +211,8 @@ Json::Value PimCalendarQt::CreateCalendarEvent(const Json::Value& args)
     ev.setEndTime(endTime);
     // TODO(rtse): timezone
     ev.setAllDay(args["allDay"].asBool());
-    ev.setSubject(args["summary"].asString().c_str());
-    ev.setLocation(args["location"].asString().c_str());
+    ev.setSubject(args["summary"].asCString());
+    ev.setLocation(args["location"].asCString());
 
     qDebug() << "Before transparency";
 
