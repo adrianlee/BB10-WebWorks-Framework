@@ -29,8 +29,8 @@ function testReadOnly(object, property) {
     expect(object[property]).toBe(oldValue);
 }
 
-function findByEventsByPrefix(prefix, onFound) {
-    var filter = new CalendarEventFilter(prefix, null, null, null, false),
+function findByEventsByPrefix(prefix, onFound, expandRecurring) {
+    var filter = new CalendarEventFilter(prefix, null, null, null, !!expandRecurring),
         findOptions = new CalendarFindOptions(filter, null, CalendarFindOptions.DETAIL_FULL);
 
     cal.findEvents(
@@ -353,7 +353,7 @@ describe("blackberry.pim.calendar", function () {
     describe("blackberry.pim.calendar can create recurring event", function () {
         var recEvent;
 
-        it('can save a recurring event on device', function () {
+        it('can save a monthly recurring event on device', function () {
             var start = new Date("Jan 6, 2013, 12:00"),
                 end = new Date("Jan 6, 2013, 12:30"),
                 location = "some location",
@@ -422,9 +422,7 @@ describe("blackberry.pim.calendar", function () {
             var filter = new CalendarEventFilter("WebWorksTest awesome recurring", null, null, null, true),
                 findOptions = new CalendarFindOptions(filter, null, CalendarFindOptions.DETAIL_FULL),
                 successCb = jasmine.createSpy().andCallFake(function (events) {
-                    var starts = [],
-                        ends = [],
-                        temp1, temp2, temp3;
+                    var starts = [];
 
                     console.log("Recurring expand=true");
                     console.log(events);
@@ -432,39 +430,15 @@ describe("blackberry.pim.calendar", function () {
 
                     events.forEach(function (evt) {
                         starts.push(evt.start.toISOString());
-                        ends.push(evt.end.toISOString());
                         expect(evt.summary).toBe(recEvent.summary);
                         expect(evt.location).toBe(recEvent.location);
                         expect(evt.allDay).toBe(recEvent.allDay);
                     });
 
-                    expect(starts).toContain(recEvent.start.toISOString());
-                    
-                    temp1 = new Date(recEvent.start.getTime());
-                    temp1.setMonth(recEvent.start.getMonth() + 1);
-                    expect(starts).toContain(temp1.toISOString());
-
-                    temp2 = new Date(recEvent.start.getTime());
-                    temp2.setMonth(recEvent.start.getMonth() + 2);
-                    expect(starts).toContain(temp2.toISOString());
-
-                    temp3 = new Date(recEvent.start.getTime());
-                    temp3.setMonth(recEvent.start.getMonth() + 3);
-                    expect(starts).toContain(temp3.toISOString());
-
-                    expect(ends).toContain(recEvent.end.toISOString());
-                    
-                    temp1 = new Date(recEvent.end.getTime());
-                    temp1.setMonth(recEvent.end.getMonth() + 1);
-                    expect(ends).toContain(temp1.toISOString());
-
-                    temp2 = new Date(recEvent.end.getTime());
-                    temp2.setMonth(recEvent.end.getMonth() + 2);
-                    expect(ends).toContain(temp2.toISOString());
-
-                    temp3 = new Date(recEvent.end.getTime());
-                    temp3.setMonth(recEvent.end.getMonth() + 3);
-                    expect(ends).toContain(temp3.toISOString());
+                    expect(starts).toContain(new Date("Jan 6, 2013, 12:00").toISOString());
+                    expect(starts).toContain(new Date("Feb 6, 2013, 12:00").toISOString());
+                    expect(starts).toContain(new Date("Mar 6, 2013, 12:00").toISOString());
+                    expect(starts).toContain(new Date("Apr 6, 2013, 12:00").toISOString());
 
                     called = true;
                 }),
@@ -526,9 +500,7 @@ describe("blackberry.pim.calendar", function () {
             var filter = new CalendarEventFilter("WebWorksTest awesome rec event binding expires", null, null, null, true),
                 findOptions = new CalendarFindOptions(filter, null, CalendarFindOptions.DETAIL_FULL),
                 successCb = jasmine.createSpy().andCallFake(function (events) {
-                    var starts = [],
-                        ends = [],
-                        temp1, temp2;
+                    var starts = [];
 
                     console.log("Recurring expand=true");
                     console.log(events);
@@ -536,32 +508,15 @@ describe("blackberry.pim.calendar", function () {
 
                     events.forEach(function (evt) {
                         starts.push(evt.start.toISOString());
-                        ends.push(evt.end.toISOString());
                         expect(evt.summary).toBe(recEvent.summary);
                         expect(evt.location).toBe(recEvent.location);
                         expect(evt.allDay).toBe(recEvent.allDay);
                     });
 
-                    expect(starts).toContain(recEvent.start.toISOString());
+                    expect(starts).toContain(new Date("Jan 7, 2013, 12:00").toISOString());
+                    expect(starts).toContain(new Date("Feb 7, 2013, 12:00").toISOString());
+                    expect(starts).toContain(new Date("Mar 7, 2013, 12:00").toISOString());
                     
-                    temp1 = new Date(recEvent.start.getTime());
-                    temp1.setMonth(recEvent.start.getMonth() + 1);
-                    expect(starts).toContain(temp1.toISOString());
-
-                    temp2 = new Date(recEvent.start.getTime());
-                    temp2.setMonth(recEvent.start.getMonth() + 2);
-                    expect(starts).toContain(temp2.toISOString());
-
-                    expect(ends).toContain(recEvent.end.toISOString());
-                    
-                    temp1 = new Date(recEvent.end.getTime());
-                    temp1.setMonth(recEvent.end.getMonth() + 1);
-                    expect(ends).toContain(temp1.toISOString());
-
-                    temp2 = new Date(recEvent.end.getTime());
-                    temp2.setMonth(recEvent.end.getMonth() + 2);
-                    expect(ends).toContain(temp2.toISOString());
-
                     called = true;
                 }),
                 errorCb = jasmine.createSpy().andCallFake(function (error) {
@@ -578,6 +533,275 @@ describe("blackberry.pim.calendar", function () {
             runs(function () {
                 expect(successCb).toHaveBeenCalled();
                 expect(errorCb).not.toHaveBeenCalled();
+            });
+        });
+
+        it('can save a recurring event repeating on Mon/Wed every week', function () {
+            var start = new Date("Jan 21, 2013, 12:00"),
+                end = new Date("Jan 21, 2013, 12:30"),
+                venue = "some location",
+                summary = "WebWorksTest every Mon and Wed",
+                rule = new CalendarRepeatRule({
+                    "frequency": CalendarRepeatRule.FREQUENCY_WEEKLY,
+                    "expires": new Date(Date.parse("Mar 30, 2013")),
+                    "dayInWeek": CalendarRepeatRule.MONDAY | CalendarRepeatRule.WEDNESDAY
+                }),
+                called = false,
+                successCb = jasmine.createSpy().andCallFake(function (created) {
+                    called = true;
+                    expect(created.summary).toBe(summary);
+                    expect(created.location).toBe(venue);
+                    expect(created.recurrence).toBeDefined();
+                    expect(created.recurrence.frequency).toBe(CalendarRepeatRule.FREQUENCY_WEEKLY);
+                    expect(created.recurrence.dayInWeek).toBe(CalendarRepeatRule.MONDAY | CalendarRepeatRule.WEDNESDAY);
+                    recEvent = created;
+                }),
+                errorCb = jasmine.createSpy().andCallFake(function (error) {
+                    called = true;
+                });
+
+            recEvent = cal.createEvent({"summary": summary, "location": venue, "start": start, "end": end, "recurrence": rule});
+            recEvent.save(successCb, errorCb);
+
+            waitsFor(function () {
+                return called;
+            }, "Recurring event not saved to device calendar", 15000);
+
+            runs(function () {
+                expect(successCb).toHaveBeenCalled();
+                expect(errorCb).not.toHaveBeenCalled();
+            });
+        });
+
+        it('Weekly recurrence with multiple weekdays works', function () {
+            var successCb = jasmine.createSpy().andCallFake(function (events) {
+                    console.log("Recurring expand=true");
+                    console.log(events);
+                    expect(events.length).toBe(20); // found all occurrences since expand flag is true
+                    called = true;
+                }),
+                called = false;
+
+            findByEventsByPrefix("WebWorksTest every Mon and Wed", successCb, true);
+
+            waitsFor(function () {
+                return called;
+            }, "Find callback never invoked", 15000);
+
+            runs(function () {
+                expect(successCb).toHaveBeenCalled();
+            });
+        });
+
+        it('can save a recurring event repeating on first Friday of every month', function () {
+            var start = new Date("Feb 1, 2013, 12:00"),
+                end = new Date("Feb 1, 2013, 12:30"),
+                venue = "some location",
+                summary = "WebWorksTest first Fri every month",
+                rule = new CalendarRepeatRule({
+                    "frequency": CalendarRepeatRule.FREQUENCY_MONTHLY_AT_A_WEEK_DAY,
+                    "expires": new Date(Date.parse("Jun 30, 2013")),
+                    "dayInWeek": CalendarRepeatRule.FRIDAY,
+                    "weekInMonth": 1
+                }),
+                called = false,
+                successCb = jasmine.createSpy().andCallFake(function (created) {
+                    called = true;
+                    expect(created.summary).toBe(summary);
+                    expect(created.location).toBe(venue);
+                    expect(created.recurrence).toBeDefined();
+                    expect(created.recurrence.frequency).toBe(CalendarRepeatRule.FREQUENCY_MONTHLY_AT_A_WEEK_DAY);
+                    expect(created.recurrence.dayInWeek).toBe(CalendarRepeatRule.FRIDAY);
+                    expect(created.recurrence.weekInMonth).toBe(1);
+                    recEvent = created;
+                }),
+                errorCb = jasmine.createSpy().andCallFake(function (error) {
+                    called = true;
+                });
+
+            recEvent = cal.createEvent({"summary": summary, "location": venue, "start": start, "end": end, "recurrence": rule});
+            recEvent.save(successCb, errorCb);
+
+            waitsFor(function () {
+                return called;
+            }, "Recurring event not saved to device calendar", 15000);
+
+            runs(function () {
+                expect(successCb).toHaveBeenCalled();
+                expect(errorCb).not.toHaveBeenCalled();
+            });
+        });
+
+        it('Monthly recurrence at a weekday works', function () {
+            var successCb = jasmine.createSpy().andCallFake(function (events) {
+                    console.log("Recurring expand=true");
+                    console.log(events);
+                    var starts = [];
+                    expect(events.length).toBe(5); // found all occurrences since expand flag is true
+
+                    events.forEach(function (evt) {
+                        starts.push(evt.start.toISOString());
+                    });
+
+                    expect(starts).toContain(new Date("Feb 1, 2013, 12:00").toISOString());
+                    expect(starts).toContain(new Date("Mar 1, 2013, 12:00").toISOString());
+                    expect(starts).toContain(new Date("Apr 5, 2013, 12:00").toISOString());
+                    expect(starts).toContain(new Date("May 3, 2013, 12:00").toISOString());
+                    expect(starts).toContain(new Date("Jun 7, 2013, 12:00").toISOString());
+
+                    called = true;
+                }),
+                called = false;
+
+            findByEventsByPrefix("WebWorksTest first Fri every month", successCb, true);
+
+            waitsFor(function () {
+                return called;
+            }, "Find callback never invoked", 15000);
+
+            runs(function () {
+                expect(successCb).toHaveBeenCalled();
+            });
+        });
+
+        it('can save a recurring event repeating on seventh month of the first Friday every year', function () {
+            var start = new Date("Jul 5, 2013, 12:00"),
+                end = new Date("Jul 5, 2013, 12:30"),
+                venue = "some location",
+                summary = "WebWorksTest 1st Fri of 7th month every year",
+                rule = new CalendarRepeatRule({
+                    "frequency": CalendarRepeatRule.FREQUENCY_YEARLY_AT_A_WEEK_DAY_OF_MONTH,
+                    "expires": new Date(Date.parse("Jun 30, 2017")),
+                    "dayInWeek": CalendarRepeatRule.FRIDAY,
+                    "weekInMonth": 1,
+                    "monthInYear": 7
+                }),
+                called = false,
+                successCb = jasmine.createSpy().andCallFake(function (created) {
+                    called = true;
+                    expect(created.summary).toBe(summary);
+                    expect(created.location).toBe(venue);
+                    expect(created.recurrence).toBeDefined();
+                    expect(created.recurrence.frequency).toBe(CalendarRepeatRule.FREQUENCY_YEARLY_AT_A_WEEK_DAY_OF_MONTH);
+                    expect(created.recurrence.dayInWeek).toBe(CalendarRepeatRule.FRIDAY);
+                    expect(created.recurrence.weekInMonth).toBe(1);
+                    expect(created.recurrence.monthInYear).toBe(7);
+                    recEvent = created;
+                }),
+                errorCb = jasmine.createSpy().andCallFake(function (error) {
+                    called = true;
+                });
+
+            recEvent = cal.createEvent({"summary": summary, "location": venue, "start": start, "end": end, "recurrence": rule});
+            recEvent.save(successCb, errorCb);
+
+            waitsFor(function () {
+                return called;
+            }, "Recurring event not saved to device calendar", 15000);
+
+            runs(function () {
+                expect(successCb).toHaveBeenCalled();
+                expect(errorCb).not.toHaveBeenCalled();
+            });
+        });
+
+        it('Yearly recurrence at a weekday of a month works', function () {
+            var successCb = jasmine.createSpy().andCallFake(function (events) {
+                    console.log("Recurring expand=true");
+                    console.log(events);
+                    var starts = [];
+                    expect(events.length).toBe(4); // found all occurrences since expand flag is true
+
+                    events.forEach(function (evt) {
+                        starts.push(evt.start.toISOString());
+                    });
+
+                    expect(starts).toContain(new Date("Jul 5, 2013, 12:00").toISOString());
+                    expect(starts).toContain(new Date("Jul 4, 2014, 12:00").toISOString());
+                    expect(starts).toContain(new Date("Jul 3, 2015, 12:00").toISOString());
+                    expect(starts).toContain(new Date("Jul 1, 2016, 12:00").toISOString());
+
+                    called = true;
+                }),
+                called = false;
+
+            findByEventsByPrefix("WebWorksTest 1st Fri of 7th month every year", successCb, true);
+
+            waitsFor(function () {
+                return called;
+            }, "Find callback never invoked", 15000);
+
+            runs(function () {
+                expect(successCb).toHaveBeenCalled();
+            });
+        });
+
+        it('can save a recurring event repeating on the last day of every month', function () {
+            var start = new Date("Jan 31, 2013, 12:00"),
+                end = new Date("Jan 31, 2013, 12:30"),
+                venue = "some location",
+                summary = "WebWorksTest last day of every month",
+                rule = new CalendarRepeatRule({
+                    "frequency": CalendarRepeatRule.FREQUENCY_MONTHLY,
+                    "expires": new Date(Date.parse("Jun 1, 2013")),
+                    "dayInMonth": CalendarRepeatRule.LAST_DAY_IN_MONTH
+                }),
+                called = false,
+                successCb = jasmine.createSpy().andCallFake(function (created) {
+                    called = true;
+                    expect(created.summary).toBe(summary);
+                    expect(created.location).toBe(venue);
+                    expect(created.recurrence).toBeDefined();
+                    expect(created.recurrence.frequency).toBe(CalendarRepeatRule.FREQUENCY_MONTHLY);
+                    expect(created.recurrence.dayInMonth).toBe(CalendarRepeatRule.LAST_DAY_IN_MONTH);
+                    recEvent = created;
+                }),
+                errorCb = jasmine.createSpy().andCallFake(function (error) {
+                    called = true;
+                });
+
+            recEvent = cal.createEvent({"summary": summary, "location": venue, "start": start, "end": end, "recurrence": rule});
+            recEvent.save(successCb, errorCb);
+
+            waitsFor(function () {
+                return called;
+            }, "Recurring event not saved to device calendar", 15000);
+
+            runs(function () {
+                expect(successCb).toHaveBeenCalled();
+                expect(errorCb).not.toHaveBeenCalled();
+            });
+        });
+
+        it('Montly recurrence on the last day of the month works', function () {
+            var successCb = jasmine.createSpy().andCallFake(function (events) {
+                    console.log("Recurring expand=true");
+                    console.log(events);
+                    var starts = [];
+                    expect(events.length).toBe(5); // found all occurrences since expand flag is true
+
+                    events.forEach(function (evt) {
+                        starts.push(evt.start.toISOString());
+                    });
+
+                    expect(starts).toContain(new Date("Jan 31, 2013, 12:00").toISOString());
+                    expect(starts).toContain(new Date("Feb 28, 2013, 12:00").toISOString());
+                    expect(starts).toContain(new Date("Mar 31, 2013, 12:00").toISOString());
+                    expect(starts).toContain(new Date("Apr 30, 2013, 12:00").toISOString());
+                    expect(starts).toContain(new Date("May 31, 2013, 12:00").toISOString());
+
+                    called = true;
+                }),
+                called = false;
+
+            findByEventsByPrefix("WebWorksTest last day of every month", successCb, true);
+
+            waitsFor(function () {
+                return called;
+            }, "Find callback never invoked", 15000);
+
+            runs(function () {
+                expect(successCb).toHaveBeenCalled();
             });
         });
     });
