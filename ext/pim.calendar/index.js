@@ -49,7 +49,6 @@ module.exports = {
         }
 
         pimCalendar.find(findOptions);
-
         success();
     },
 
@@ -155,6 +154,7 @@ JNEXT.PimCalendar = function ()
     };
 
     self.onEvent = function (strData) {
+        console.log("onEvent, strData=" + strData);
         var arData = strData.split(" "),
             strEventDesc = arData[0],
             args = {};

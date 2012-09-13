@@ -43,7 +43,7 @@ CalendarEvent = function (properties) {
     this.start = properties && properties.start !== undefined ? (properties.start instanceof Date ? properties.start : new Date(parseInt(properties.start, 10))) : null;
     this.summary = properties && properties.summary !== undefined ? properties.summary : "";
     this.timezone = properties && properties.timezone !== undefined ? properties.timezone : "";
-    this.transparency = properties && properties.transparency !== undefined ? properties.transparency : "";
+    this.transparency = properties && properties.transparency !== undefined ? properties.transparency : 2; // default to busy if not set
     this.originalStartTime = properties && properties.originalStartTime !== undefined ? (properties.originalStartTime instanceof Date ? properties.originalStartTime : new Date(parseInt(properties.originalStartTime, 10))) : null;
 
     privateId = properties && properties.id !== undefined ? properties.id : null;
@@ -228,9 +228,14 @@ CalendarEvent.prototype.createExceptionEvent = function (originalStartTime) {
     return exceptionEvent;
 };
 
-Object.defineProperty(CalendarEvent, "NORMAL", {"value": 0});
-Object.defineProperty(CalendarEvent, "PERSONAL", {"value": 1});
-Object.defineProperty(CalendarEvent, "PRIVATE", {"value": 2});
-Object.defineProperty(CalendarEvent, "CONFIDENTIAL", {"value": 3});
+Object.defineProperty(CalendarEvent, "SENSITIVITY_NORMAL", {"value": 0});
+Object.defineProperty(CalendarEvent, "SENSITIVITY_PERSONAL", {"value": 1});
+Object.defineProperty(CalendarEvent, "SENSITIVITY_PRIVATE", {"value": 2});
+Object.defineProperty(CalendarEvent, "SENSITIVITY_CONFIDENTIAL", {"value": 3});
+
+Object.defineProperty(CalendarEvent, "TRANSPARENCY_FREE", {"value": 0});
+Object.defineProperty(CalendarEvent, "TRANSPARENCY_TENTATIVE", {"value": 1});
+Object.defineProperty(CalendarEvent, "TRANSPARENCY_BUSY", {"value": 2});
+Object.defineProperty(CalendarEvent, "TRANSPARENCY_OUT_OF_OFFICE", {"value": 3});
 
 module.exports = CalendarEvent;
