@@ -219,12 +219,12 @@ describe("blackberry.pim.calendar", function () {
             var rule = new CalendarRepeatRule({
                 "frequency": CalendarRepeatRule.FREQUENCY_WEEKLY,
                 "numberOfOccurrences": 9,
-                "expires": Date.parse("Dec 31, 2012")
+                "expires": new Date("Dec 31, 2012")
             });
 
             expect(rule.frequency).toBe(CalendarRepeatRule.FREQUENCY_WEEKLY);
             expect(rule.numberOfOccurrences).toBe(9);
-            expect(rule.expires.toISOString()).toBe(new Date(Date.parse("Dec 31, 2012")).toISOString());
+            expect(rule.expires.toISOString()).toBe(new Date("Dec 31, 2012").toISOString());
         });
     });
 
@@ -287,8 +287,8 @@ describe("blackberry.pim.calendar", function () {
                     expect(created).toBeDefined();
                     expect(typeof created.id).toBe("string");
                     expect(created.id).not.toBe("");
-                    expect(created.start.toISOString()).toBe(new Date(Date.parse("Dec 31, 2012")).toISOString());
-                    expect(created.end.toISOString()).toBe(new Date(Date.parse("Jan 01, 2013")).toISOString());
+                    expect(created.start.toISOString()).toBe(new Date("Dec 31, 2012").toISOString());
+                    expect(created.end.toISOString()).toBe(new Date("Jan 01, 2013").toISOString());
                     expect(created.allDay).toBeTruthy();
                     expect(created.summary).toBe("WebWorksTest create event 1");
                     expect(created.location).toBe("Location 1");
@@ -312,11 +312,60 @@ describe("blackberry.pim.calendar", function () {
             findByEventsByPrefix("WebWorksTest create event 1", function (events) {
                 expect(events.length).toBe(1);
                 expect(events[0].id).not.toBe("");
-                expect(events[0].start.toISOString()).toBe(new Date(Date.parse("Dec 31, 2012")).toISOString());
-                expect(events[0].end.toISOString()).toBe(new Date(Date.parse("Jan 01, 2013")).toISOString());
+                expect(events[0].start.toISOString()).toBe(new Date("Dec 31, 2012").toISOString());
+                expect(events[0].end.toISOString()).toBe(new Date("Jan 01, 2013").toISOString());
                 expect(events[0].allDay).toBeTruthy();
                 expect(events[0].summary).toBe("WebWorksTest create event 1");
                 expect(events[0].location).toBe("Location 1");
+            });
+        });
+
+        it('can edit a saved event', function () {
+            var called = false,
+                newSummary = "WebWorksTest create event 1 modified",
+                newLocation = "Location 1 modified",
+                newStart = new Date("Dec 31, 2012, 11:30"),
+                newEnd = new Date("Dec 31, 2012, 11:45"),
+                newAllDay = false,
+                successCb = jasmine.createSpy().andCallFake(function (saved) {
+                    called = true;
+                    expect(saved.summary).toBe(newSummary);
+                    expect(saved.location).toBe(newLocation);
+                    expect(saved.allDay).toBe(newAllDay);
+                    expect(saved.start.toISOString()).toBe(newStart.toISOString());
+                    expect(saved.end.toISOString()).toBe(newEnd.toISOString());
+                }),
+                errorCb = jasmine.createSpy().andCallFake(function () {
+                    called = true;
+                });
+
+            calEvent.summary = newSummary;
+            calEvent.location = newLocation;
+            calEvent.allDay = newAllDay;
+            calEvent.start = newStart;
+            calEvent.end = newEnd;
+
+            calEvent.save(successCb, errorCb);
+
+            waitsFor(function () {
+                return called;
+            }, "Event not saved to device calendar", 15000);
+
+            runs(function () {
+                expect(successCb).toHaveBeenCalled();
+                expect(errorCb).not.toHaveBeenCalled();
+            });
+        });
+
+        it('edited event can be found by findEvents', function () {
+            findByEventsByPrefix("WebWorksTest create event 1", function (events) {
+                expect(events.length).toBe(1);
+                expect(events[0].id).not.toBe("");
+                expect(events[0].start.toISOString()).toBe(new Date("Dec 31, 2012, 11:30").toISOString());
+                expect(events[0].end.toISOString()).toBe(new Date("Dec 31, 2012, 11:45").toISOString());
+                expect(events[0].allDay).toBeFalsy();
+                expect(events[0].summary).toBe("WebWorksTest create event 1 modified");
+                expect(events[0].location).toBe("Location 1 modified");
             });
         });
 
@@ -359,7 +408,7 @@ describe("blackberry.pim.calendar", function () {
                 summary = "WebWorksTest awesome recurring event",
                 rule = new CalendarRepeatRule({
                     "frequency": CalendarRepeatRule.FREQUENCY_MONTHLY,
-                    "expires": new Date(Date.parse("Dec 31, 2013")),
+                    "expires": new Date("Dec 31, 2013"),
                     "numberOfOccurrences": 4
                 }),
                 called = false,
@@ -463,7 +512,7 @@ describe("blackberry.pim.calendar", function () {
                 summary = "WebWorksTest awesome rec event binding expires",
                 rule = new CalendarRepeatRule({
                     "frequency": CalendarRepeatRule.FREQUENCY_MONTHLY,
-                    "expires": new Date(Date.parse("Mar 30, 2013")),
+                    "expires": new Date("Mar 30, 2013"),
                     "numberOfOccurrences": 4
                 }),
                 called = false,
@@ -538,7 +587,7 @@ describe("blackberry.pim.calendar", function () {
                 summary = "WebWorksTest every Mon and Wed",
                 rule = new CalendarRepeatRule({
                     "frequency": CalendarRepeatRule.FREQUENCY_WEEKLY,
-                    "expires": new Date(Date.parse("Mar 30, 2013")),
+                    "expires": new Date("Mar 30, 2013"),
                     "dayInWeek": CalendarRepeatRule.MONDAY | CalendarRepeatRule.WEDNESDAY
                 }),
                 called = false,
@@ -593,7 +642,7 @@ describe("blackberry.pim.calendar", function () {
                 summary = "WebWorksTest first Fri every month",
                 rule = new CalendarRepeatRule({
                     "frequency": CalendarRepeatRule.FREQUENCY_MONTHLY_AT_A_WEEK_DAY,
-                    "expires": new Date(Date.parse("Jun 30, 2013")),
+                    "expires": new Date("Jun 30, 2013"),
                     "dayInWeek": CalendarRepeatRule.FRIDAY,
                     "weekInMonth": 1
                 }),
@@ -663,7 +712,7 @@ describe("blackberry.pim.calendar", function () {
                 summary = "WebWorksTest 1st Fri of 7th month every year",
                 rule = new CalendarRepeatRule({
                     "frequency": CalendarRepeatRule.FREQUENCY_YEARLY_AT_A_WEEK_DAY_OF_MONTH,
-                    "expires": new Date(Date.parse("Jun 30, 2017")),
+                    "expires": new Date("Jun 30, 2017"),
                     "dayInWeek": CalendarRepeatRule.FRIDAY,
                     "weekInMonth": 1,
                     "monthInYear": 7
@@ -734,7 +783,7 @@ describe("blackberry.pim.calendar", function () {
                 summary = "WebWorksTest last day of every month",
                 rule = new CalendarRepeatRule({
                     "frequency": CalendarRepeatRule.FREQUENCY_MONTHLY,
-                    "expires": new Date(Date.parse("Jun 1, 2013")),
+                    "expires": new Date("Jun 1, 2013"),
                     "dayInMonth": CalendarRepeatRule.LAST_DAY_IN_MONTH
                 }),
                 called = false,
@@ -804,7 +853,7 @@ describe("blackberry.pim.calendar", function () {
                 summary = "WebWorksTest test exception event",
                 rule = new CalendarRepeatRule({
                     "frequency": CalendarRepeatRule.FREQUENCY_WEEKLY,
-                    "expires": new Date(Date.parse("Feb 18, 2013")),
+                    "expires": new Date("Feb 18, 2013"),
                     "dayInWeek": CalendarRepeatRule.TUESDAY | CalendarRepeatRule.FRIDAY
                 }),
                 called = false,
