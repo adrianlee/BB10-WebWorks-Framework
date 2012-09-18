@@ -64,7 +64,6 @@ public:
     Json::Value CreateCalendarEvent(const Json::Value& args);
     Json::Value DeleteCalendarEvent(const Json::Value& args);
     Json::Value EditCalendarEvent(bbpim::CalendarEvent& contact, const Json::Value& attributeObj);
-    Json::Value CloneCalendarEvent(bbpim::CalendarEvent& contact, const Json::Value& attributeObj);
     Json::Value GetCalendarFolders();
     Json::Value GetTimezones();
 

@@ -127,19 +127,10 @@ Json::Value PimCalendarQt::Save(const Json::Value& attributeObj)
     } else {
         int eventId = attributeObj["id"].asInt();
         int accountId = attributeObj["accountId"].asInt();
+        bbpim::CalendarEvent event = service.event(accountId, eventId);
 
-        if (accountId > 0 && eventId > 0) {
-            bbpim::CalendarEvent event = service.event(accountId, eventId);
-
-            if (event.isValid()) {
-                return EditCalendarEvent(event, attributeObj);
-            }
-        } else {
-            // bbpim::Contact contact = service.contactDetails(contactId * -1);
-
-            // if (contact.isValid()) {
-            //     return CloneContact(contact, attributeObj);
-            // }
+        if (event.isValid()) {
+            return EditCalendarEvent(event, attributeObj);
         }
     }
 
@@ -543,30 +534,6 @@ Json::Value PimCalendarQt::EditCalendarEvent(bbpim::CalendarEvent& calEvent, con
         returnObj["code"] = UNKNOWN_ERROR;
     }
 
-    return returnObj;
-}
-
-Json::Value PimCalendarQt::CloneCalendarEvent(bbpim::CalendarEvent& calEvent, const Json::Value& attributeObj)
-{
-/*
-    bbpim::ContactService service;
-    bbpim::Contact newContact;
-    bbpim::ContactBuilder contactBuilder(newContact.edit());
-    contactBuilder = contactBuilder.addFromContact(contact);
-    contactBuilder = contactBuilder.setFavorite(contact.isFavourite());
-
-    newContact = service.createContact(newContact, false);
-
-    Json::Value returnObj;
-
-    if (newContact.isValid()) {
-        returnObj = EditContact(newContact, attributeObj);
-    } else {
-        returnObj["_success"] = false;
-        returnObj["code"] = UNKNOWN_ERROR;
-    }
-*/
-    Json::Value returnObj;
     return returnObj;
 }
 
