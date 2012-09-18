@@ -39,7 +39,8 @@ describe("Overlay Webview", function () {
             windowGroup: undefined,
             addEventListener: jasmine.createSpy(),
             enableWebEventRedirect: jasmine.createSpy(),
-            notifyContextMenuCancelled: jasmine.createSpy()
+            notifyContextMenuCancelled: jasmine.createSpy(),
+            allowQnxObject: undefined
         };
         mockedApplication = {
             windowVisible: undefined
@@ -75,13 +76,13 @@ describe("Overlay Webview", function () {
             webview.create();
             waits(1);
             runs(function () {
-                expect(mockedWebview.enableCrossSiteXHR).toEqual(true);
                 expect(mockedWebview.visible).toEqual(true);
                 expect(mockedWebview.active).toEqual(true);
                 expect(mockedWebview.zOrder).toEqual(1);
                 expect(mockedWebview.setGeometry).toHaveBeenCalledWith(0, 0, screen.width, screen.height);
                 expect(mockedWebview.backgroundColor).toEqual(0x00FFFFFF);
                 expect(mockedWebview.sensitivity).toEqual("SensitivityTest");
+                expect(mockedWebview.allowQnxObject).toEqual(true);
             });
         });
 
