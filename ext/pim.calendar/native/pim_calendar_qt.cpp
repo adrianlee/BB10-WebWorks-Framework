@@ -217,7 +217,7 @@ Json::Value PimCalendarQt::CreateCalendarEvent(const Json::Value& args)
     qDebug() << "Before transparency";
 
     if (args.isMember("transparency") && args["transparency"].isInt()) {
-        ev.setBusyStatus(bbpim::BusyStatus::Type(args.get("transparency", bbpim::BusyStatus::Tentative).asInt()));
+        ev.setBusyStatus(bbpim::BusyStatus::Type(args.get("transparency", bbpim::BusyStatus::Busy).asInt())); // use busy as default, same as calendar app
     }
 
     qDebug() << "After transparency";

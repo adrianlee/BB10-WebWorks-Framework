@@ -185,19 +185,6 @@ CalendarEvent.prototype.remove = function (onRemoveSuccess, onRemoveError) {
     return window.webworks.execAsync(_ID, "remove", args);
 };
 
-CalendarEvent.prototype.clone = function () {
-    var calEvent = new CalendarEvent({"id" : -1 * this.id}),
-        key;
-
-    for (key in this) {
-        if (this.hasOwnProperty(key)) {
-            calEvent[key] = this[key];
-        }
-    }
-
-    return calEvent;
-};
-
 CalendarEvent.prototype.createExceptionEvent = function (originalStartTime) {
     var properties = {},
         key,

@@ -30,7 +30,7 @@ function invokeCallback(callback, args) {
     }
 }
 
-function validateFindArguments(onFindSuccess, onFindError, findOptions) {
+function validateFindArguments(findOptions, onFindSuccess, onFindError) {
     var error = false;
 
     if (!onFindSuccess || typeof onFindSuccess !== "function" || !findOptions || typeof findOptions.limit !== "number" ||
@@ -132,11 +132,11 @@ _self.getTimezones = function () {
     return window.webworks.execSync(_ID, "getTimezones");
 };
 
-_self.findEvents = function (onFindSuccess, onFindError, findOptions) {
+_self.findEvents = function (findOptions, onFindSuccess, onFindError) {
     var callback,
         eventId;
 
-    if (!validateFindArguments(onFindSuccess, onFindError, findOptions)) {
+    if (!validateFindArguments(findOptions, onFindSuccess, onFindError)) {
         return;
     }
 

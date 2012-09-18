@@ -34,13 +34,14 @@ function findByEventsByPrefix(prefix, onFound, expandRecurring) {
         findOptions = new CalendarFindOptions(filter, null, CalendarFindOptions.DETAIL_FULL);
 
     cal.findEvents(
+        findOptions,
         function (events) {
             if (onFound && typeof onFound === "function") {
                 onFound(events);
             }
         }, function (error) {
             console.log("Failed to find events with prefix '" + prefix + "', error code=" + error.code);
-        }, findOptions);
+        });
 }
 
 function deleteEventWithMatchingPrefix(prefix) {
@@ -175,6 +176,28 @@ describe("blackberry.pim.calendar", function () {
             testReadOnly(CalendarRepeatRule, "FREQUENCY_MONTHLY_AT_A_WEEK_DAY");
             testReadOnly(CalendarRepeatRule, "FREQUENCY_YEARLY");
             testReadOnly(CalendarRepeatRule, "FREQUENCY_YEARLY_AT_A_WEEK_DAY_OF_MONTH");
+        });
+
+        it('blackberry.pim.calendar.CalendarEvent constants should exist', function () {
+            expect(CalendarEvent.SENSITIVITY_NORMAL).toBeDefined();
+            expect(CalendarEvent.SENSITIVITY_PERSONAL).toBeDefined();
+            expect(CalendarEvent.SENSITIVITY_PRIVATE).toBeDefined();
+            expect(CalendarEvent.SENSITIVITY_CONFIDENTIAL).toBeDefined();
+            expect(CalendarEvent.TRANSPARENCY_FREE).toBeDefined();
+            expect(CalendarEvent.TRANSPARENCY_TENTATIVE).toBeDefined();
+            expect(CalendarEvent.TRANSPARENCY_BUSY).toBeDefined();
+            expect(CalendarEvent.TRANSPARENCY_OUT_OF_OFFICE).toBeDefined();
+        });
+
+        it('blackberry.pim.calendar.CalendarEvent constants should be read-only', function () {
+            testReadOnly(CalendarEvent, "SENSITIVITY_NORMAL");
+            testReadOnly(CalendarEvent, "SENSITIVITY_PERSONAL");
+            testReadOnly(CalendarEvent, "SENSITIVITY_PRIVATE");
+            testReadOnly(CalendarEvent, "SENSITIVITY_CONFIDENTIAL");
+            testReadOnly(CalendarEvent, "TRANSPARENCY_FREE");
+            testReadOnly(CalendarEvent, "TRANSPARENCY_TENTATIVE");
+            testReadOnly(CalendarEvent, "TRANSPARENCY_BUSY");
+            testReadOnly(CalendarEvent, "TRANSPARENCY_OUT_OF_OFFICE");
         });
     });
 
@@ -454,7 +477,7 @@ describe("blackberry.pim.calendar", function () {
                 }),
                 called = false;
 
-            cal.findEvents(successCb, errorCb, findOptions);
+            cal.findEvents(findOptions, successCb, errorCb);
 
             waitsFor(function () {
                 return called;
@@ -493,7 +516,7 @@ describe("blackberry.pim.calendar", function () {
                 }),
                 called = false;
 
-            cal.findEvents(successCb, errorCb, findOptions);
+            cal.findEvents(findOptions, successCb, errorCb);
 
             waitsFor(function () {
                 return called;
@@ -568,7 +591,7 @@ describe("blackberry.pim.calendar", function () {
                 }),
                 called = false;
 
-            cal.findEvents(successCb, errorCb, findOptions);
+            cal.findEvents(findOptions, successCb, errorCb);
 
             waitsFor(function () {
                 return called;
@@ -969,7 +992,7 @@ describe("blackberry.pim.calendar", function () {
             var successCb = jasmine.createSpy(),
                 errorCb = jasmine.createSpy();
 
-            cal.findEvents(successCb, errorCb);
+            cal.findEvents(null, successCb, errorCb);
 
             expect(errorCb).toHaveBeenCalledWith(new CalendarError(CalendarError.INVALID_ARGUMENT_ERROR));
             expect(successCb).not.toHaveBeenCalled();
@@ -980,7 +1003,7 @@ describe("blackberry.pim.calendar", function () {
                 errorCb = jasmine.createSpy(),
                 findOptions = new CalendarFindOptions(null, null, CalendarFindOptions.DETAIL_FULL, 5);
 
-            cal.findEvents(successCb, errorCb, findOptions);
+            cal.findEvents(findOptions, successCb, errorCb);
 
             expect(errorCb).toHaveBeenCalledWith(new CalendarError(CalendarError.INVALID_ARGUMENT_ERROR));
             expect(successCb).not.toHaveBeenCalled();
@@ -992,7 +1015,7 @@ describe("blackberry.pim.calendar", function () {
                 filter = new CalendarEventFilter("", null, null, null, false),
                 findOptions = new CalendarFindOptions(filter, null, CalendarFindOptions.DETAIL_FULL, 5);
 
-            cal.findEvents(successCb, errorCb, findOptions);
+            cal.findEvents(findOptions, successCb, errorCb);
 
             expect(errorCb).toHaveBeenCalledWith(new CalendarError(CalendarError.INVALID_ARGUMENT_ERROR));
             expect(successCb).not.toHaveBeenCalled();
@@ -1004,7 +1027,7 @@ describe("blackberry.pim.calendar", function () {
                 filter = new CalendarEventFilter("abc", null, null, null, false),
                 findOptions = new CalendarFindOptions(filter, null, -890, 5);
 
-            cal.findEvents(successCb, errorCb, findOptions);
+            cal.findEvents(findOptions, successCb, errorCb);
 
             expect(errorCb).toHaveBeenCalledWith(new CalendarError(CalendarError.INVALID_ARGUMENT_ERROR));
             expect(successCb).not.toHaveBeenCalled();
@@ -1039,7 +1062,7 @@ describe("blackberry.pim.calendar", function () {
             });
 
             created.save(function () {
-                cal.findEvents(successCb, errorCb, findOptions);
+                cal.findEvents(findOptions, successCb, errorCb);
             });
 
             waitsFor(function () {
