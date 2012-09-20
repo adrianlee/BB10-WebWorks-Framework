@@ -22,7 +22,9 @@ var _self = {},
     CalendarError = require("./CalendarError"),
     CalendarFindOptions = require("./CalendarFindOptions"),
     CalendarFolder = require("./CalendarFolder"),
-    CalendarRepeatRule = require("./CalendarRepeatRule");
+    CalendarRepeatRule = require("./CalendarRepeatRule"),
+    CalendarEventFilter = require("./CalendarEventFilter"),
+    Attendee = require("./Attendee");
 
 function invokeCallback(callback, args) {
     if (callback && typeof callback === "function") {
@@ -178,6 +180,7 @@ _self.CalendarRepeatRule = CalendarRepeatRule;
 _self.CalendarError = CalendarError;
 _self.CalendarFindOptions = CalendarFindOptions;
 _self.CalendarFolder = CalendarFolder;
-_self.CalendarEventFilter = require("./CalendarEventFilter");
+_self.CalendarEventFilter = CalendarEventFilter;
+_self.Attendee = Attendee;
 
 module.exports = _self;

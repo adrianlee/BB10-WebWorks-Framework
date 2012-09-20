@@ -21,8 +21,8 @@ var cal,
     CalendarFindOptions,
     CalendarEventFilter,
     CalendarError,
-    CalendarRepeatRule;
-    // Attendee
+    CalendarRepeatRule,
+    Attendee;
 
 function testReadOnly(object, property) {
     var oldValue = object[property];
@@ -79,6 +79,7 @@ beforeEach(function () {
     CalendarEventFilter = cal.CalendarEventFilter;
     CalendarError = cal.CalendarError;
     CalendarRepeatRule = cal.CalendarRepeatRule;
+    Attendee = cal.Attendee;
 });
 
 describe("blackberry.pim.calendar", function () {
@@ -95,7 +96,7 @@ describe("blackberry.pim.calendar", function () {
             expect(CalendarFindOptions).toBeDefined();
             expect(CalendarEventFilter).toBeDefined();
             expect(CalendarError).toBeDefined();
-            // expect(Attendee).toBeDefined();
+            expect(Attendee).toBeDefined();
             expect(CalendarRepeatRule).toBeDefined();
         });
 
@@ -200,6 +201,34 @@ describe("blackberry.pim.calendar", function () {
             testReadOnly(CalendarEvent, "TRANSPARENCY_BUSY");
             testReadOnly(CalendarEvent, "TRANSPARENCY_OUT_OF_OFFICE");
         });
+
+        it('blackberry.pim.calendar.Attendee constants should exist', function () {
+            expect(Attendee.TYPE_HOST).toBeDefined();
+            expect(Attendee.TYPE_PARTICIPANT).toBeDefined();
+            expect(Attendee.ROLE_CHAIR).toBeDefined();
+            expect(Attendee.ROLE_REQUIRED_PARTICIPANT).toBeDefined();
+            expect(Attendee.ROLE_OPTIONAL_PARTICIPANT).toBeDefined();
+            expect(Attendee.ROLE_NON_PARTICIPANT).toBeDefined();
+            expect(Attendee.STATUS_UNKNOWN).toBeDefined();
+            expect(Attendee.STATUS_TENTATIVE).toBeDefined();
+            expect(Attendee.STATUS_ACCEPTED).toBeDefined();
+            expect(Attendee.STATUS_DECLINED).toBeDefined();
+            expect(Attendee.STATUS_NOT_RESPONDED).toBeDefined();
+        });
+
+        it('blackberry.pim.calendar.Attendee constants should be read-only', function () {
+            testReadOnly(Attendee, "TYPE_HOST");
+            testReadOnly(Attendee, "TYPE_PARTICIPANT");
+            testReadOnly(Attendee, "ROLE_CHAIR");
+            testReadOnly(Attendee, "ROLE_REQUIRED_PARTICIPANT");
+            testReadOnly(Attendee, "ROLE_OPTIONAL_PARTICIPANT");
+            testReadOnly(Attendee, "ROLE_NON_PARTICIPANT");
+            testReadOnly(Attendee, "STATUS_UNKNOWN");
+            testReadOnly(Attendee, "STATUS_TENTATIVE");
+            testReadOnly(Attendee, "STATUS_ACCEPTED");
+            testReadOnly(Attendee, "STATUS_DECLINED");
+            testReadOnly(Attendee, "STATUS_NOT_RESPONDED");
+        });
     });
 
     describe("Child objects creation", function () {
@@ -249,6 +278,20 @@ describe("blackberry.pim.calendar", function () {
             expect(rule.frequency).toBe(CalendarRepeatRule.FREQUENCY_WEEKLY);
             expect(rule.numberOfOccurrences).toBe(9);
             expect(rule.expires.toISOString()).toBe(new Date("Dec 31, 2012").toISOString());
+        });
+
+        it('Can create blackberry.pim.calendar.Attendee object', function () {
+            var attendee = new Attendee({
+                "email": "abc@blah.com",
+                "name": "John Doe",
+                "role": Attendee.ROLE_REQUIRED_PARTICIPANT,
+                "type": Attendee.TYPE_PARTICIPANT
+            });
+
+            expect(attendee.email).toBe("abc@blah.com");
+            expect(attendee.name).toBe("John Doe");
+            expect(attendee.role).toBe(Attendee.ROLE_REQUIRED_PARTICIPANT);
+            expect(attendee.type).toBe(Attendee.TYPE_PARTICIPANT);
         });
     });
 

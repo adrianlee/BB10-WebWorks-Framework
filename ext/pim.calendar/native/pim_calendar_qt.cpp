@@ -615,6 +615,14 @@ void PimCalendarQt::lookupCalendarFolderByFolderKey(bbpim::AccountId accountId, 
     }
 }
 
+bool PimCalendarQt::isDefaultCalendarFolder(const bbpim::CalendarFolder& folder) {
+    bb::pim::account::AccountService accountService;
+    bb::pim::account::Account defaultCalAccnt = accountService.defaultAccount(bb::pim::account::Service::Calendars);
+
+    return (folder.accountId() == defaultCalAccnt.id() &&
+        intToFolderId(accountService.getDefault(bb::pim::account::Service::Calendars)) == folder.id());
+}
+
 Json::Value PimCalendarQt::getCalendarFolderJson(const bbpim::CalendarFolder& folder) {
     Json::Value f;
 
@@ -645,10 +653,24 @@ Json::Value PimCalendarQt::getCalendarFolderJson(const bbpim::CalendarFolder& fo
     keys << "capabilities" << "supports_meeting_participants";
     value = getFromMap(variantMap, keys);
     if (value.isValid() && value.type() == QVariant::Bool) {
-        fprintf(stderr, "inside if supportsParticipants %s\n", "");
         f["supportsParticipants"] = value.toBool();
     } else {
         f["supportsParticipants"] = true; // assume true if not defined, as per Calendar app
+    }
+
+    keys.clear();
+    keys << "messages" << "supported";
+    value = getFromMap(variantMap, keys);
+    if (value.isValid() && value.type() == QVariant::Bool) {
+        f["supportsMessaging"] = value.toBool();
+    } else {
+        f["supportsMessaging"] = false;
+    }
+
+    if (variantMap.contains("enterprise")) {
+        f["enterprise"] = variantMap.value("enterprise").toBool();
+    } else {
+        f["enterprise"] = false; // assume false if not defined
     }
 
     f["id"] = intToStr(folder.id());
@@ -659,6 +681,7 @@ Json::Value PimCalendarQt::getCalendarFolderJson(const bbpim::CalendarFolder& fo
     f["type"] = folder.type();
     f["color"] = QString("%1").arg(folder.color(), 6, 16, QChar('0')).toUpper().toStdString();
     f["visible"] = folder.isVisible();
+    f["default"] = isDefaultCalendarFolder(folder);
 
     return f;
 }
