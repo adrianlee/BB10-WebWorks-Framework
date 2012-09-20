@@ -25,6 +25,7 @@
 #include <string>
 #include <utility>
 #include <map>
+#include <limits>
 
 class PimCalendar;
 
@@ -55,6 +56,8 @@ struct PimCalendarThreadInfo {
     std::string eventId;
 };
 
+const quint32 UNDEFINED_UINT = std::numeric_limits<quint32>::max();
+
 class PimCalendarQt {
 public:
     PimCalendarQt();
@@ -69,6 +72,8 @@ public:
 
 private:
     std::string intToStr(const int val);
+    bbpim::FolderId intToFolderId(const quint32 id);
+    QVariant getFromMap(QMap<QString, QVariant> map, QStringList keys);
     std::string getFolderKeyStr(bbpim::AccountId accountId, bbpim::FolderId folderId);
     bool getSearchParams(bbpim::EventSearchParameters& searchParams, const Json::Value& args);
     void lookupCalendarFolderByFolderKey(bbpim::AccountId accountId, bbpim::FolderId folderId);

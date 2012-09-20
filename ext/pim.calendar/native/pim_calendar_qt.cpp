@@ -33,6 +33,9 @@
 #include <stdio.h>
 #include <QFile>
 #include <QTextStream>
+#include <QVariantMap>
+#include <QVariant>
+#include <QStringList>
 #include <QPair>
 #include <QSet>
 #include <QMap>
@@ -192,7 +195,7 @@ Json::Value PimCalendarQt::CreateCalendarEvent(const Json::Value& args)
         bb::pim::account::AccountService accountService;
         bb::pim::account::Account defaultCalAccnt = accountService.defaultAccount(bb::pim::account::Service::Calendars);
         ev.setAccountId(defaultCalAccnt.id());
-        ev.setFolderId(1); // hard-code for now, no way to find out default calendar folder from pimlib
+        ev.setFolderId(intToFolderId(accountService.getDefault(bb::pim::account::Service::Calendars)));
     }
 
     QDateTime startTime = QDateTime::fromString(args["start"].asCString(), "yyyy-MM-dd'T'hh:mm:ss'.000Z'");
@@ -258,7 +261,7 @@ Json::Value PimCalendarQt::CreateCalendarEvent(const Json::Value& args)
 
     qDebug() << "Before attendee";
 
-    if (args.isMember("attendee")) {
+    if (args.isMember("attendees")) {
         for (int i = 0; i < args["attendees"].size(); i++) {
             bbpim::Attendee attendee;
             Json::Value attendee_json = args["attendees"][i];
@@ -547,6 +550,29 @@ std::string PimCalendarQt::intToStr(const int val) {
     return out.str();
 }
 
+bbpim::FolderId PimCalendarQt::intToFolderId(const quint32 id) {
+  return (id != UNDEFINED_UINT) ? bbpim::FolderId(id) : -1;
+}
+
+QVariant PimCalendarQt::getFromMap(QMap<QString, QVariant> map, QStringList keys) {
+    QVariant variant;
+    QMap<QString, QVariant> currentMap = map;
+    QStringList::iterator i;
+    for(i = keys.begin(); i != keys.end(); ++i){
+        if (currentMap.contains(*i)) {
+            variant = currentMap.value(*i);
+        } else {
+            variant.clear();
+            break;
+        }
+
+        if (variant.type() == QVariant::Map) {
+            currentMap = variant.toMap();
+        }
+    }
+    return variant;
+}
+
 std::string PimCalendarQt::getFolderKeyStr(bbpim::AccountId accountId, bbpim::FolderId folderId) {
     std::string str(intToStr(accountId));
     str += '-';
@@ -591,6 +617,39 @@ void PimCalendarQt::lookupCalendarFolderByFolderKey(bbpim::AccountId accountId, 
 
 Json::Value PimCalendarQt::getCalendarFolderJson(const bbpim::CalendarFolder& folder) {
     Json::Value f;
+
+    bb::pim::account::AccountService accountService;
+    bb::pim::account::Account account = accountService.account(folder.accountId());
+    QVariantMap variantMap = account.rawData();
+
+    QMap<QString, QVariant> temp;
+    temp = variantMap.value("capabilities").toMap();
+    fprintf(stderr, "map is empty? %s\n", temp.empty() ? "true" : "false");
+    for (QMap<QString, QVariant>::const_iterator i = temp.constBegin(); i != temp.constEnd(); i++) {
+        fprintf(stderr, "Key: %s\n", i.key().toStdString().c_str());
+    }
+
+    QList<QString> keys;
+    QVariant value;
+
+    keys.clear();
+    keys << "capabilities" << "supports_infinite_recurrence";
+    value = getFromMap(variantMap, keys);
+    if (value.isValid() && value.type() == QVariant::Bool) {
+        f["supportsInfiniteRecurrence"] = value.toBool();
+    } else {
+        f["supportsInfiniteRecurrence"] = true; // assume true if not defined, as per Calendar app
+    }
+
+    keys.clear();
+    keys << "capabilities" << "supports_meeting_participants";
+    value = getFromMap(variantMap, keys);
+    if (value.isValid() && value.type() == QVariant::Bool) {
+        fprintf(stderr, "inside if supportsParticipants %s\n", "");
+        f["supportsParticipants"] = value.toBool();
+    } else {
+        f["supportsParticipants"] = true; // assume true if not defined, as per Calendar app
+    }
 
     f["id"] = intToStr(folder.id());
     f["accountId"] = intToStr(folder.accountId());
