@@ -15,6 +15,7 @@
  */
 
 var cal,
+    recEvent,
     CalendarEvent,
     CalendarFolder,
     CalendarFindOptions,
@@ -422,8 +423,6 @@ describe("blackberry.pim.calendar", function () {
     });
 
     describe("Recurring event", function () {
-        var recEvent;
-
         it('Can save a monthly recurring event on device', function () {
             var start = new Date("Jan 6, 2013, 12:00"),
                 end = new Date("Jan 6, 2013, 12:30"),
@@ -462,7 +461,8 @@ describe("blackberry.pim.calendar", function () {
         });
 
         it('Can find recurring event (with expandRecurring set to false)', function () {
-            var filter = new CalendarEventFilter("WebWorksTest awesome recurring", null, null, null, false),
+            var called = false,
+                filter = new CalendarEventFilter("WebWorksTest awesome recurring", null, null, null, false),
                 findOptions = new CalendarFindOptions(filter, null, CalendarFindOptions.DETAIL_FULL),
                 successCb = jasmine.createSpy().andCallFake(function (events) {
                     expect(events.length).toBe(1); // only found original event if expand flag is set to false
@@ -474,8 +474,7 @@ describe("blackberry.pim.calendar", function () {
                 }),
                 errorCb = jasmine.createSpy().andCallFake(function (error) {
                     called = true;
-                }),
-                called = false;
+                });
 
             cal.findEvents(findOptions, successCb, errorCb);
 
@@ -490,7 +489,8 @@ describe("blackberry.pim.calendar", function () {
         });
 
         it('Can find recurring event (with expandRecurring set to true)', function () {
-            var filter = new CalendarEventFilter("WebWorksTest awesome recurring", null, null, null, true),
+            var called = false,
+                filter = new CalendarEventFilter("WebWorksTest awesome recurring", null, null, null, true),
                 findOptions = new CalendarFindOptions(filter, null, CalendarFindOptions.DETAIL_FULL),
                 successCb = jasmine.createSpy().andCallFake(function (events) {
                     var starts = [];
@@ -513,8 +513,7 @@ describe("blackberry.pim.calendar", function () {
                 }),
                 errorCb = jasmine.createSpy().andCallFake(function (error) {
                     called = true;
-                }),
-                called = false;
+                });
 
             cal.findEvents(findOptions, successCb, errorCb);
 
@@ -566,7 +565,8 @@ describe("blackberry.pim.calendar", function () {
         });
 
         it('Expires in CalendarRepeatRule works', function () {
-            var filter = new CalendarEventFilter("WebWorksTest awesome rec event binding expires", null, null, null, true),
+            var called = false,
+                filter = new CalendarEventFilter("WebWorksTest awesome rec event binding expires", null, null, null, true),
                 findOptions = new CalendarFindOptions(filter, null, CalendarFindOptions.DETAIL_FULL),
                 successCb = jasmine.createSpy().andCallFake(function (events) {
                     var starts = [];
@@ -588,8 +588,7 @@ describe("blackberry.pim.calendar", function () {
                 }),
                 errorCb = jasmine.createSpy().andCallFake(function (error) {
                     called = true;
-                }),
-                called = false;
+                });
 
             cal.findEvents(findOptions, successCb, errorCb);
 
@@ -641,11 +640,11 @@ describe("blackberry.pim.calendar", function () {
         });
 
         it('Weekly recurrence with multiple weekdays works', function () {
-            var successCb = jasmine.createSpy().andCallFake(function (events) {
+            var called = false,
+                successCb = jasmine.createSpy().andCallFake(function (events) {
                     expect(events.length).toBe(20); // found all occurrences since expand flag is true
                     called = true;
-                }),
-                called = false;
+                });
 
             findByEventsByPrefix("WebWorksTest every Mon and Wed", successCb, true);
 
@@ -698,7 +697,8 @@ describe("blackberry.pim.calendar", function () {
         });
 
         it('Monthly recurrence at a weekday works', function () {
-            var successCb = jasmine.createSpy().andCallFake(function (events) {
+            var called = false,
+                successCb = jasmine.createSpy().andCallFake(function (events) {
                     var starts = [];
 
                     expect(events.length).toBe(5); // found all occurrences since expand flag is true
@@ -714,8 +714,7 @@ describe("blackberry.pim.calendar", function () {
                     expect(starts).toContain(new Date("Jun 7, 2013, 12:00").toISOString());
 
                     called = true;
-                }),
-                called = false;
+                });
 
             findByEventsByPrefix("WebWorksTest first Fri every month", successCb, true);
 
@@ -770,7 +769,8 @@ describe("blackberry.pim.calendar", function () {
         });
 
         it('Yearly recurrence at a weekday of a month works', function () {
-            var successCb = jasmine.createSpy().andCallFake(function (events) {
+            var called = false,
+                successCb = jasmine.createSpy().andCallFake(function (events) {
                     var starts = [];
 
                     expect(events.length).toBe(4); // found all occurrences since expand flag is true
@@ -785,8 +785,7 @@ describe("blackberry.pim.calendar", function () {
                     expect(starts).toContain(new Date("Jul 1, 2016, 12:00").toISOString());
 
                     called = true;
-                }),
-                called = false;
+                });
 
             findByEventsByPrefix("WebWorksTest 1st Fri of 7th month every year", successCb, true);
 
@@ -837,7 +836,8 @@ describe("blackberry.pim.calendar", function () {
         });
 
         it('Montly recurrence on the last day of the month works', function () {
-            var successCb = jasmine.createSpy().andCallFake(function (events) {
+            var called = false,
+                successCb = jasmine.createSpy().andCallFake(function (events) {
                     var starts = [];
 
                     expect(events.length).toBe(5); // found all occurrences since expand flag is true
@@ -853,8 +853,7 @@ describe("blackberry.pim.calendar", function () {
                     expect(starts).toContain(new Date("May 31, 2013, 12:00").toISOString());
 
                     called = true;
-                }),
-                called = false;
+                });
 
             findByEventsByPrefix("WebWorksTest last day of every month", successCb, true);
 
@@ -881,6 +880,14 @@ describe("blackberry.pim.calendar", function () {
                 }),
                 called = false,
                 exceptionEvtSavedCalled = false,
+                exceptionSavedCb = jasmine.createSpy().andCallFake(function (exc) {
+                    exceptionEvtSavedCalled = true;
+                    expect(exc.id).not.toBe(recEvent.id);
+                    expect(exc.parentId).toBe(recEvent.id);
+                }),
+                exceptionErrorCb = jasmine.createSpy().andCallFake(function (error) {
+                    exceptionEvtSavedCalled = true;
+                }),
                 successCb = jasmine.createSpy().andCallFake(function (created) {
                     called = true;
                     recEvent = created;
@@ -911,14 +918,6 @@ describe("blackberry.pim.calendar", function () {
                 }),
                 errorCb = jasmine.createSpy(function (error) {
                     called = true;
-                }),
-                exceptionSavedCb = jasmine.createSpy().andCallFake(function (exc) {
-                    exceptionEvtSavedCalled = true;
-                    expect(exc.id).not.toBe(recEvent.id);
-                    expect(exc.parentId).toBe(recEvent.id);
-                }),
-                exceptionErrorCb = jasmine.createSpy().andCallFake(function (error) {
-                    exceptionEvtSavedCalled = true;
                 });
 
             recEvent = cal.createEvent({"summary": summary, "location": location, "start": start, "end": end, "recurrence": rule});
@@ -944,7 +943,8 @@ describe("blackberry.pim.calendar", function () {
         });
 
         it('Exception event replaces original occurence', function () {
-            var successCb = jasmine.createSpy().andCallFake(function (events) {
+            var called = false,
+                successCb = jasmine.createSpy().andCallFake(function (events) {
                     var starts = [];
 
                     expect(events.length).toBe(8);// found all occurrences since expand flag is true
@@ -963,8 +963,7 @@ describe("blackberry.pim.calendar", function () {
                     expect(starts).toContain(new Date("Feb 16, 2013, 12:00").toISOString());
 
                     called = true;
-                }),
-                called = false;
+                });
 
             findByEventsByPrefix("WebWorksTest test exception event", successCb, true);
 
