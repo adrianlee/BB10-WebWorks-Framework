@@ -95,6 +95,10 @@ module.exports = {
         success(pimCalendar.getCalendarFolders());
     },
 
+    getDefaultCalendarFolder: function (success, fail, args) {
+        success(pimCalendar.getDefaultCalendarFolder());
+    },
+
     getTimezones: function (success, fail, args) {
         success(pimCalendar.getTimezones());
     }
@@ -126,6 +130,11 @@ JNEXT.PimCalendar = function ()
     self.getCalendarFolders = function (args) {
         var result = JNEXT.invoke(self.m_id, "getCalendarFolders");
         console.log("getCalendarFolders, result=" + result);
+        return JSON.parse(result);
+    };
+
+    self.getDefaultCalendarFolder = function (args) {
+        var result = JNEXT.invoke(self.m_id, "getDefaultCalendarFolder");
         return JSON.parse(result);
     };
 

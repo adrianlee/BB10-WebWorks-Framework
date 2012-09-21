@@ -156,6 +156,26 @@ Json::Value PimCalendarQt::GetCalendarFolders()
     return folderList;
 }
 
+Json::Value PimCalendarQt::GetDefaultCalendarFolder()
+{
+    bb::pim::account::AccountService accountService;
+    bb::pim::account::Account defaultCalAccnt = accountService.defaultAccount(bb::pim::account::Service::Calendars);
+    bbpim::AccountId accountId = defaultCalAccnt.id();
+    bbpim::FolderId folderId = intToFolderId(accountService.getDefault(bb::pim::account::Service::Calendars));
+
+    bbpim::CalendarService service;
+    QList<bbpim::CalendarFolder> folders = service.folders();
+    bbpim::CalendarFolder defaultFolder;
+
+    for (QList<bbpim::CalendarFolder>::const_iterator i = folders.constBegin(); i != folders.constEnd(); i++) {
+        if (i->id() == folderId && i->accountId() == accountId) {
+            return getCalendarFolderJson(*i, true);
+        }
+    }
+
+    return Json::Value();
+}
+
 Json::Value PimCalendarQt::GetTimezones()
 {
     Json::Value results;
@@ -179,8 +199,6 @@ Json::Value PimCalendarQt::GetTimezones()
 
 Json::Value PimCalendarQt::CreateCalendarEvent(const Json::Value& args)
 {
-    qDebug() << "create!";
-
     Json::Value returnObj;
 
     bbpim::CalendarService service;
@@ -208,13 +226,9 @@ Json::Value PimCalendarQt::CreateCalendarEvent(const Json::Value& args)
     ev.setSubject(args["summary"].asCString());
     ev.setLocation(args["location"].asCString());
 
-    qDebug() << "Before transparency";
-
     if (args.isMember("transparency") && args["transparency"].isInt()) {
         ev.setBusyStatus(bbpim::BusyStatus::Type(args.get("transparency", bbpim::BusyStatus::Busy).asInt())); // use busy as default, same as calendar app
     }
-
-    qDebug() << "After transparency";
 
     QList<QDateTime> exceptionDates;
 
@@ -258,8 +272,6 @@ Json::Value PimCalendarQt::CreateCalendarEvent(const Json::Value& args)
 
         ev.setRecurrence(recurrence);
     }
-
-    qDebug() << "Before attendee";
 
     if (args.isMember("attendees")) {
         for (int i = 0; i < args["attendees"].size(); i++) {
@@ -623,7 +635,7 @@ bool PimCalendarQt::isDefaultCalendarFolder(const bbpim::CalendarFolder& folder)
         intToFolderId(accountService.getDefault(bb::pim::account::Service::Calendars)) == folder.id());
 }
 
-Json::Value PimCalendarQt::getCalendarFolderJson(const bbpim::CalendarFolder& folder) {
+Json::Value PimCalendarQt::getCalendarFolderJson(const bbpim::CalendarFolder& folder, bool skipDefaultCheck) {
     Json::Value f;
 
     bb::pim::account::AccountService accountService;
@@ -681,7 +693,7 @@ Json::Value PimCalendarQt::getCalendarFolderJson(const bbpim::CalendarFolder& fo
     f["type"] = folder.type();
     f["color"] = QString("%1").arg(folder.color(), 6, 16, QChar('0')).toUpper().toStdString();
     f["visible"] = folder.isVisible();
-    f["default"] = isDefaultCalendarFolder(folder);
+    f["default"] = skipDefaultCheck ? true : isDefaultCalendarFolder(folder);
 
     return f;
 }

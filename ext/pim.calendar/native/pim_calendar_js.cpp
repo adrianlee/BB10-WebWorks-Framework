@@ -82,6 +82,12 @@ std::string PimCalendar::InvokeMethod(const std::string& command)
         std::string str = writer.write(result);
         fprintf(stderr, "Calendar Folders Result: %s", str.c_str());
         return str;
+    } else if (strCommand == "getDefaultCalendarFolder") {
+        webworks::PimCalendarQt pim_qt;
+        Json::Value result = pim_qt.GetDefaultCalendarFolder();
+        Json::FastWriter writer;
+        std::string str = writer.write(result);
+        return str;
     } else if (strCommand == "getTimezones") {
         webworks::PimCalendarQt pim_qt;
         Json::Value result = pim_qt.GetTimezones();

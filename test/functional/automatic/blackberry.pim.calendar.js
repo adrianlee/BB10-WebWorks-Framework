@@ -318,6 +318,17 @@ describe("blackberry.pim.calendar", function () {
             }, false);
 
             expect(homeFolderFound).toBeTruthy();
+            expect(folders.filter(function (f) {
+                return f.default;
+            }).length).toBe(1); // only 1 folder is marked as the default folder
+        });
+    });
+
+    describe("blackberry.pim.calendar.getDefaultCalendarFolder", function () {
+        it('returns the default calendar folder', function () {
+            var defaultFolder = cal.getDefaultCalendarFolder();
+
+            expect(defaultFolder.default).toBeTruthy();
         });
     });
 
@@ -462,6 +473,47 @@ describe("blackberry.pim.calendar", function () {
             findByEventsByPrefix("WebWorksTest create event 1", function (events) {
                 expect(events.length).toBe(0);
             });
+        });
+    });
+
+    describe("Events with attendees", function () {
+        it('Can create an event that has attendees', function () {
+            if (cal.getDefaultCalendarFolder().supportsParticipants) {
+                var start = new Date("Jan 2, 2013, 12:00"),
+                    end = new Date("Jan 2, 2013, 12:30"),
+                    venue = "some location",
+                    summary = "WebWorksTest event with attendees",
+                    attendee1 = new Attendee({
+                        "email": "abc@blah.com",
+                        "name": "John Doe",
+                        "owner": true,
+                        "role": Attendee.ROLE_CHAIR,
+                        "type": Attendee.TYPE_HOST
+                    }),
+                    attendee2 = new Attendee({
+                        "email": "def@blah.com",
+                        "name": "Jane Doe",
+                        "owner": false,
+                        "role": Attendee.ROLE_REQUIRED_PARTICIPANT,
+                        "type": Attendee.TYPE_PARTICIPANT
+                    }),
+                    called = false,
+                    evt,
+                    successCb = jasmine.createSpy().andCallFake(function (created) {
+                        called = true;
+                        expect(created.summary).toBe(summary);
+                        expect(created.location).toBe(venue);
+                        expect(created.attendees).toBeDefined();
+                        expect(created.attendees.length).toBeDefined();
+                        expect(created.attendees.length).toBe(2);
+                    }),
+                    errorCb = jasmine.createSpy(function (error) {
+                        called = true;
+                    });
+
+                evt = cal.createEvent({"summary": summary, "location": venue, "start": start, "end": end, "attendees": [attendee1, attendee2]});
+                evt.save(successCb, errorCb);
+            }
         });
     });
 

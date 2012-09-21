@@ -68,6 +68,7 @@ public:
     Json::Value DeleteCalendarEvent(const Json::Value& args);
     Json::Value EditCalendarEvent(bbpim::CalendarEvent& contact, const Json::Value& attributeObj);
     Json::Value GetCalendarFolders();
+    Json::Value GetDefaultCalendarFolder();
     Json::Value GetTimezones();
 
 private:
@@ -78,7 +79,7 @@ private:
     bool getSearchParams(bbpim::EventSearchParameters& searchParams, const Json::Value& args);
     void lookupCalendarFolderByFolderKey(bbpim::AccountId accountId, bbpim::FolderId folderId);
     bool isDefaultCalendarFolder(const bbpim::CalendarFolder& folder);
-    Json::Value getCalendarFolderJson(const bbpim::CalendarFolder& folder);
+    Json::Value getCalendarFolderJson(const bbpim::CalendarFolder& folder, bool skipDefaultCheck = false);
 
     Json::Value populateEvent(const bbpim::CalendarEvent& event, bool isFind);
     Json::Value getCalendarFolderByFolderKey(bbpim::AccountId accountId, bbpim::FolderId folderId);

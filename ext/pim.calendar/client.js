@@ -130,6 +130,11 @@ _self.getCalendarFolders = function () {
     return folders;
 };
 
+_self.getDefaultCalendarFolder = function () {
+    var obj = window.webworks.execSync(_ID, "getDefaultCalendarFolder");
+    return new CalendarFolder(obj);
+};
+
 _self.getTimezones = function () {
     return window.webworks.execSync(_ID, "getTimezones");
 };

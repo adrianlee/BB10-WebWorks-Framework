@@ -17,9 +17,9 @@
 var Attendee;
 
 Attendee = function (properties) {
-    this.contactId = properties && properties.contactId !== undefined ? properties.contactId : "";
+    this.contactId = properties && properties.contactId !== undefined ? properties.contactId : 0;
     this.email = properties && properties.email !== undefined ? properties.email : "";
-    this.eventId = properties && properties.eventId !== undefined ? properties.eventId : "";
+    this.eventId = properties && properties.eventId !== undefined ? properties.eventId : 0;
     this.name = properties && properties.name !== undefined ? properties.name : "";
     this.owner = properties && properties.owner !== undefined ? properties.owner : false;
     this.role = properties && properties.role !== undefined ? properties.role : 1; // default to host
