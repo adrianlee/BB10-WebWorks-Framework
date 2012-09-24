@@ -33,6 +33,7 @@ function validateIdMessageSettings(args) {
 
 var dialog,
     _event = require("../../lib/event"),
+    overlayWebView = require('../../lib/overlayWebView'),
     _webview = require("../../lib/webview");
     
 module.exports = {
@@ -53,8 +54,17 @@ module.exports = {
             fail(-1, "buttons is not an array");
             return;
         }
+
+        var  messageObj = {};
+
+        messageObj.title = "Web Inspector Enabled";
+
+            messageObj.htmlmessage =  "Test Message";
         
-        dialog.show(args.eventId, args.message, args.buttons, args.settings);
+        messageObj.dialogType = 'JavaScriptAlert';
+        overlayWebView.showDialog(messageObj);
+        
+        //dialog.show(args.eventId, args.message, args.buttons, args.settings);
         success();
     },
 
