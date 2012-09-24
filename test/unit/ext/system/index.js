@@ -195,126 +195,101 @@ describe("system index", function () {
         });
     });
 
-    describe("device properties", function () {
-        var ppsUtils,
-            mockedPPS,
-            path = "/pps/services/deviceproperties",
-            mode = "0";
-
+    describe("qnx.webplatform.device properties", function () {
         beforeEach(function () {
-            GLOBAL.JNEXT = {};
-            ppsUtils = require(libDir + "pps/ppsUtils");
             sysIndex = require(apiDir + "index");
-            mockedPPS = {
-                init: jasmine.createSpy(),
-                open: jasmine.createSpy().andReturn(true),
-                read: jasmine.createSpy().andReturn({
-                    "hardwareid" : "0x8500240a",
-                    "scmbundle" : "10.0.6.99",
-                    "devicename": "Device"
-                }),
-                close: jasmine.createSpy()
+            GLOBAL.window = {
+                qnx: {
+                    webplatform: {
+                        device: {
+                        }
+                    }
+                }
             };
         });
 
         afterEach(function () {
-            GLOBAL.JNEXT = null;
-            ppsUtils = null;
+            delete window.qnx.webplatform.device;
+            GLOBAL.window = null;
             sysIndex = null;
-            mockedPPS = null;
         });
 
-        it("can call fail if failed to open PPS object for hardwareId", function () {
-            var fail = jasmine.createSpy();
+        function successCase(indexField, deviceField) {
+            var success = jasmine.createSpy(),
+                fail = jasmine.createSpy();
 
-            mockedPPS.open = jasmine.createSpy().andReturn(false);
-            spyOn(ppsUtils, "createObject").andReturn(mockedPPS);
+            window.qnx.webplatform.device[deviceField] = (new Date()).getTime();
 
-            sysIndex.hardwareId(null, fail, null, null);
-
-            expect(mockedPPS.init).toHaveBeenCalled();
-            expect(mockedPPS.open).toHaveBeenCalledWith(path, mode);
-            expect(mockedPPS.read).not.toHaveBeenCalled();
-            expect(mockedPPS.close).toHaveBeenCalled();
-            expect(fail).toHaveBeenCalledWith(-1, jasmine.any(String));
-        });
-
-        it("can call fail if failed to open PPS object for softwareVersion", function () {
-            var fail = jasmine.createSpy();
-
-            mockedPPS.open = jasmine.createSpy().andReturn(false);
-            spyOn(ppsUtils, "createObject").andReturn(mockedPPS);
-
-            sysIndex.softwareVersion(null, fail, null, null);
-
-            expect(mockedPPS.init).toHaveBeenCalled();
-            expect(mockedPPS.open).toHaveBeenCalledWith(path, mode);
-            expect(mockedPPS.read).not.toHaveBeenCalled();
-            expect(mockedPPS.close).toHaveBeenCalled();
-            expect(fail).toHaveBeenCalledWith(-1, jasmine.any(String));
-        });
-
-        it("can call fail if failed to open PPS object for device name", function () {
-            var fail = jasmine.createSpy(),
-                success = jasmine.createSpy();
-
-            mockedPPS.open = jasmine.createSpy().andReturn(false);
-            spyOn(ppsUtils, "createObject").andReturn(mockedPPS);
-
-            sysIndex.name(success, fail, null, null);
-
-            expect(success).not.toHaveBeenCalled();
-            expect(fail).toHaveBeenCalledWith(-1, "Cannot open PPS object");
-            expect(mockedPPS.init).toHaveBeenCalled();
-            expect(mockedPPS.open).toHaveBeenCalledWith(path, mode);
-            expect(mockedPPS.read).not.toHaveBeenCalled();
-            expect(mockedPPS.close).toHaveBeenCalled();
-        });
-
-        it("can call success with hardwareId", function () {
-            var success = jasmine.createSpy();
-
-            spyOn(ppsUtils, "createObject").andReturn(mockedPPS);
-
-            sysIndex.hardwareId(success, null, null, null);
-
-            expect(mockedPPS.init).toHaveBeenCalled();
-            expect(mockedPPS.open).toHaveBeenCalledWith(path, mode);
-            expect(mockedPPS.read).toHaveBeenCalled();
-            expect(mockedPPS.close).toHaveBeenCalled();
-            expect(success).toHaveBeenCalledWith("0x8500240a");
-        });
-
-        it("can call success with softwareVersion", function () {
-            var success = jasmine.createSpy();
-
-            spyOn(ppsUtils, "createObject").andReturn(mockedPPS);
-
-            sysIndex.softwareVersion(success, null, null, null);
-
-            // The PPS objects should have been init in the test above; once the PPS has been read it is cached
-            expect(mockedPPS.init).not.toHaveBeenCalled();
-            expect(mockedPPS.open).not.toHaveBeenCalledWith(path, mode);
-            expect(mockedPPS.read).not.toHaveBeenCalled();
-            expect(mockedPPS.close).not.toHaveBeenCalled();
-            expect(success).toHaveBeenCalledWith("10.0.6.99");
-        });
-
-        it("can call success with name", function () {
-            var fail = jasmine.createSpy(),
-                success = jasmine.createSpy();
-
-            spyOn(ppsUtils, "createObject").andReturn(mockedPPS);
-
-            sysIndex.name(success, fail, null, null);
-
-            // The PPS objects should have been init in the test above; once the PPS has been read it is cached
-            expect(mockedPPS.init).not.toHaveBeenCalled();
-            expect(mockedPPS.open).not.toHaveBeenCalledWith(path, mode);
-            expect(mockedPPS.read).not.toHaveBeenCalled();
-            expect(mockedPPS.close).not.toHaveBeenCalled();
+            sysIndex[indexField](success, fail);
+            expect(success).toHaveBeenCalledWith(window.qnx.webplatform.device[deviceField]);
             expect(fail).not.toHaveBeenCalled();
-            expect(success).toHaveBeenCalledWith("Device");
+        }
+
+        function missingCase(indexField) {
+            var success = jasmine.createSpy(),
+                fail = jasmine.createSpy();
+
+            sysIndex[indexField](success, fail);
+            expect(success).not.toHaveBeenCalled();
+            expect(fail).toHaveBeenCalledWith(-1, "Cannot retrieve data from system");
+        }
+
+        function errorCase(indexField, deviceField) {
+            var success = jasmine.createSpy(),
+                fail = jasmine.createSpy(),
+                errMsg = "Something bad happened";
+
+            Object.defineProperty(window.qnx.webplatform.device, deviceField, {
+                get: function () {
+                    throw new Error(errMsg);
+                }
+            });
+
+            sysIndex[indexField](success, fail);
+            expect(success).not.toHaveBeenCalled();
+            expect(fail).toHaveBeenCalledWith(-1, errMsg);
+        }
+
+        describe("softwareVersion", function () {
+            it("calls success when softwareVersion is truthy", function () {
+                successCase("softwareVersion", "scmBundle");
+            });
+
+            it("calls fail when softwareVersion is not there", function () {
+                missingCase("softwareVersion");
+            });
+
+            it("calls fail when softwareVersion throws an error", function () {
+                errorCase("softwareVersion", "scmBundle");
+            });
+        });
+
+        describe("name", function () {
+            it("calls success when name is truthy", function () {
+                successCase("name", "deviceName");
+            });
+
+            it("calls fail when name is not there", function () {
+                missingCase("name");
+            });
+
+            it("calls fail when name throws an error", function () {
+                errorCase("name", "deviceName");
+            });
+        });
+
+        describe("hardwareId", function () {
+            it("calls success when hardwareId is truthy", function () {
+                successCase("hardwareId", "hardwareId");
+            });
+
+            it("calls fail when hardwareId is not there", function () {
+                missingCase("hardwareId");
+            });
+
+            it("calls fail when hardwareId throws an error", function () {
+                errorCase("hardwareId", "hardwareId");
+            });
         });
     });
 

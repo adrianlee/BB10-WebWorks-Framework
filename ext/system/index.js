@@ -199,33 +199,22 @@ var Whitelist = require("../../lib/policy/whitelist").Whitelist,
             }
         }
     },
-    _deviceprops,
     ERROR_ID = -1;
 
-/*
- * Read the PPS object once and cache it for future calls
- */
-function readDeviceProperties() {
-    var PPSUtils = _ppsUtils.createObject();
-
-    PPSUtils.init();
-
-    if (PPSUtils.open("/pps/services/deviceproperties", "0")) {
-        _deviceprops = PPSUtils.read();
-    }
-
-    PPSUtils.close();
-}
-
 function getDeviceProperty(prop, success, fail) {
-    if (!_deviceprops) {
-        readDeviceProperties();
+    var result;
+
+    try {
+        result = window.qnx.webplatform.device[prop];
+    } catch (err) {
+        fail(ERROR_ID, err.message);
+        return;
     }
 
-    if (_deviceprops) {
-        success(_deviceprops[prop]);
+    if (result) {
+        success(result);
     } else {
-        fail(-1, "Cannot open PPS object");
+        fail(-1, "Cannot retrieve data from system");
     }
 }
 
@@ -270,7 +259,7 @@ function readDeviceRegion(success, fail) {
 }
 
 module.exports = {
-    registerEvents: function (success, fail, args, env) {
+    registerEvents: function (success, fail) {
         try {
             var _eventExt = _utils.loadExtensionModule("event", "index");
             _eventExt.registerEvents(_actionMap);
@@ -290,7 +279,7 @@ module.exports = {
         success(allowed ? 0 : 1);
     },
 
-    hasCapability: function (success, fail, args, env) {
+    hasCapability: function (success, fail, args) {
         var SUPPORTED_CAPABILITIES = [
                 "input.touch",
                 "location.gps",
@@ -307,7 +296,7 @@ module.exports = {
         success(SUPPORTED_CAPABILITIES.indexOf(capability) >= 0);
     },
 
-    getFontInfo: function (success, fail, args, env) {
+    getFontInfo: function (success, fail) {
         var fontFamily,
             fontSize;
 
@@ -320,24 +309,24 @@ module.exports = {
             fail(ERROR_ID, e);
         }
     },
-    
-    hardwareId: function (success, fail, args, env) {
-        getDeviceProperty("hardwareid", success, fail);
+
+    hardwareId: function (success, fail) {
+        getDeviceProperty("hardwareId", success, fail);
     },
 
-    softwareVersion: function (success, fail, args, env) {
-        getDeviceProperty("scmbundle", success, fail);
+    softwareVersion: function (success, fail) {
+        getDeviceProperty("scmBundle", success, fail);
     },
 
-    name: function (success, fail, args, env) {
-        getDeviceProperty("devicename", success, fail);
+    name: function (success, fail) {
+        getDeviceProperty("deviceName", success, fail);
     },
 
-    language: function (success, fail, args, env) {
+    language: function (success, fail) {
         readDeviceLanguage(success, fail);
     },
 
-    region: function (success, fail, args, env) {
+    region: function (success, fail) {
         readDeviceRegion(success, fail);
     }
 };

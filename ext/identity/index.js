@@ -21,7 +21,7 @@ function getDeviceField(field, success, fail) {
 
     try {
         result = window.qnx.webplatform.device[field];
-    } catch(err) {
+    } catch (err) {
         fail(ERROR_ID, err.message);
         return;
     }

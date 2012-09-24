@@ -80,7 +80,7 @@ describe("identity index", function () {
 
         describe("uuid", function () {
             it("calls success when devicepin is truthy", function () {
-                successCase("uuid","devicePin");
+                successCase("uuid", "devicePin");
             });
 
             it("calls fail when devicepin is not there", function () {
@@ -94,7 +94,7 @@ describe("identity index", function () {
 
         describe("IMSI", function () {
             it("calls success when IMSI is truthy", function () {
-                successCase("IMSI","IMSI");
+                successCase("IMSI", "IMSI");
             });
 
             it("calls fail when IMSI is not there", function () {
@@ -108,7 +108,7 @@ describe("identity index", function () {
 
         describe("IMEI", function () {
             it("calls success when IMEI is truthy", function () {
-                successCase("IMEI","IMEI");
+                successCase("IMEI", "IMEI");
             });
 
             it("calls fail when IMEI is not there", function () {
