@@ -59,7 +59,7 @@ module.exports = {
 
         messageObj.title = "Web Inspector Enabled";
 
-            messageObj.htmlmessage =  "Test Message";
+        messageObj.htmlmessage =  "Test Message";
         
         messageObj.dialogType = 'JavaScriptAlert';
         overlayWebView.showDialog(messageObj);
