@@ -13,55 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var _ppsUtils = require("../../lib/pps/ppsUtils"),
-    ERROR_ID = -1,
-    ERRON_MSG_PPS = "Cannot open PPS object";
+var ERROR_ID = -1,
+    ERRON_MSG_PPS = "Cannot retrieve data from system";
 
-function getPPSField(path, field) {
-    var ppsObj = _ppsUtils.createObject(),
-        ppsContent;
+function getDeviceField(field, success, fail) {
+    var result;
 
-    ppsObj.init();
-
-    if (ppsObj.open(path, "0")) {
-        ppsContent = ppsObj.read();
+    try {
+        result = window.qnx.webplatform.device[field];
+    } catch(err) {
+        fail(ERROR_ID, err.message);
+        return;
     }
 
-    ppsObj.close();
-
-    if (ppsContent) {
-        return (ppsContent[field]);
+    if (result !== undefined) {
+        success(result);
     } else {
-        return ppsContent;
+        fail(ERROR_ID, ERRON_MSG_PPS);
     }
 }
 
 module.exports = {
-    uuid: function (success, fail, args, env) {
-        var result = getPPSField("/pps/services/private/deviceproperties", "devicepin");
-
-        if (result) {
-            success(result);
-        } else {
-            fail(ERROR_ID, ERRON_MSG_PPS);
-        }
+    uuid: function (success, fail) {
+        getDeviceField("devicePin", success, fail);
     },
-    IMSI: function (success, fail, args, env) {
-        var result = getPPSField("/pps/services/cellular/uicc/card0/status_restricted", "imsi");
-
-        if (result) {
-            success(result);
-        } else {
-            fail(ERROR_ID, ERRON_MSG_PPS);
-        }
+    IMSI: function (success, fail) {
+        getDeviceField("IMSI", success, fail);
     },
-    IMEI: function (success, fail, args, env) {
-        var result = getPPSField("/pps/services/private/deviceproperties", "IMEI");
-
-        if (result) {
-            success(result);
-        } else {
-            fail(ERROR_ID, ERRON_MSG_PPS);
-        }
+    IMEI: function (success, fail) {
+        getDeviceField("IMEI", success, fail);
     }
 };

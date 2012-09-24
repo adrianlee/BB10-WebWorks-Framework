@@ -14,151 +14,110 @@
  * limitations under the License.
  */
 var _apiDir = __dirname + "./../../../../ext/identity/",
-    _libDir = __dirname + "./../../../../lib/",
-    index,
-    ppsUtils,
-    mockedPPS,
-    path,
-    mode = "0";
+    index;
 
 describe("identity index", function () {
     beforeEach(function () {
-        GLOBAL.JNEXT = {};
-        ppsUtils = require(_libDir + "pps/ppsUtils");
         index = require(_apiDir + "index");
-        mockedPPS = {
-            init: jasmine.createSpy(),
-            open: jasmine.createSpy().andReturn(true),
-            read: jasmine.createSpy(),
-            close: jasmine.createSpy()
-        };
     });
 
     afterEach(function () {
-        GLOBAL.JNEXT = null;
-        ppsUtils = null;
         index = null;
-        mockedPPS = null;
     });
 
-    describe("uuid", function () {
-        path = "/pps/services/private/deviceproperties";
-
+    describe("qnx.webplatform.device fields", function () {
         beforeEach(function () {
-            mockedPPS.read.andReturn({"devicepin": "abcdefg"});
+            GLOBAL.window = {
+                qnx: {
+                    webplatform: {
+                        device: {
+                        }
+                    }
+                }
+            };
         });
 
-        it("can call success with devicepin", function () {
-            var success = jasmine.createSpy();
-
-            spyOn(ppsUtils, "createObject").andReturn(mockedPPS);
-
-            index.uuid(success, null, null, null);
-
-            expect(mockedPPS.init).toHaveBeenCalled();
-            expect(mockedPPS.open).toHaveBeenCalledWith(path, mode);
-            expect(mockedPPS.read).toHaveBeenCalled();
-            expect(mockedPPS.close).toHaveBeenCalled();
-            expect(success).toHaveBeenCalledWith("abcdefg");
+        afterEach(function () {
+            delete window.qnx.webplatform.device;
+            GLOBAL.window = null;
         });
 
-        it("can call fail if failed to open PPS object", function () {
-            var fail = jasmine.createSpy();
-
-            mockedPPS.open = jasmine.createSpy().andReturn(false);
-            spyOn(ppsUtils, "createObject").andReturn(mockedPPS);
-
-            index.uuid(null, fail, null, null);
-
-            expect(mockedPPS.init).toHaveBeenCalled();
-            expect(mockedPPS.open).toHaveBeenCalledWith(path, mode);
-            expect(mockedPPS.read).not.toHaveBeenCalled();
-            expect(mockedPPS.close).toHaveBeenCalled();
-            expect(fail).toHaveBeenCalledWith(-1, jasmine.any(String));
-        });
-    });
-
-    describe("IMSI", function () {
-        var imsi = "310150123456789",
-            path = "/pps/services/cellular/uicc/card0/status_restricted";
-
-        beforeEach(function () {
-            mockedPPS.read.andReturn({"imsi": imsi});
-        });
-
-        it("can call success with IMSI", function () {
+        function successCase(indexField, deviceField) {
             var success = jasmine.createSpy(),
                 fail = jasmine.createSpy();
 
-            spyOn(ppsUtils, "createObject").andReturn(mockedPPS);
+            window.qnx.webplatform.device[deviceField] = (new Date()).getTime();
 
-            index.IMSI(success, fail, null, null);
-
-            expect(mockedPPS.init).toHaveBeenCalled();
-            expect(mockedPPS.open).toHaveBeenCalledWith(path, mode);
-            expect(mockedPPS.read).toHaveBeenCalled();
-            expect(mockedPPS.close).toHaveBeenCalled();
-            expect(success).toHaveBeenCalledWith(imsi);
+            index[indexField](success, fail);
+            expect(success).toHaveBeenCalledWith(window.qnx.webplatform.device[deviceField]);
             expect(fail).not.toHaveBeenCalled();
-        });
+        }
 
-        it("can call fail if failed to open PPS object", function () {
+        function missingCase(indexField) {
             var success = jasmine.createSpy(),
                 fail = jasmine.createSpy();
 
-            mockedPPS.open = jasmine.createSpy().andReturn(false);
-            spyOn(ppsUtils, "createObject").andReturn(mockedPPS);
-
-            index.IMSI(success, fail, null, null);
-
-            expect(mockedPPS.init).toHaveBeenCalled();
-            expect(mockedPPS.open).toHaveBeenCalledWith(path, mode);
-            expect(mockedPPS.read).not.toHaveBeenCalled();
-            expect(mockedPPS.close).toHaveBeenCalled();
+            index[indexField](success, fail);
             expect(success).not.toHaveBeenCalled();
-            expect(fail).toHaveBeenCalledWith(-1, "Cannot open PPS object");
-        });
-    });
+            expect(fail).toHaveBeenCalledWith(-1, "Cannot retrieve data from system");
+        }
 
-    describe("IMEI", function () {
-        var imei = "AA-BBBBBB-CCCCCC-D",
-            path = "/pps/services/private/deviceproperties";
-
-        beforeEach(function () {
-            mockedPPS.read.andReturn({"IMEI": imei});
-        });
-
-        it("can call success with IMEI", function () {
-            var success = jasmine.createSpy("success"),
-                fail = jasmine.createSpy("fail");
-
-            spyOn(ppsUtils, "createObject").andReturn(mockedPPS);
-
-            index.IMEI(success, fail, null, null);
-
-            expect(mockedPPS.init).toHaveBeenCalled();
-            expect(mockedPPS.open).toHaveBeenCalledWith(path, mode);
-            expect(mockedPPS.read).toHaveBeenCalled();
-            expect(mockedPPS.close).toHaveBeenCalled();
-            expect(fail).not.toHaveBeenCalled();
-            expect(success).toHaveBeenCalledWith(imei);
-        });
-
-        it("can call fail if failed to open PPS object", function () {
+        function errorCase(indexField, deviceField) {
             var success = jasmine.createSpy(),
-                fail = jasmine.createSpy();
+                fail = jasmine.createSpy(),
+                errMsg = "Something bad happened";
 
-            mockedPPS.open = jasmine.createSpy().andReturn(false);
-            spyOn(ppsUtils, "createObject").andReturn(mockedPPS);
+            Object.defineProperty(window.qnx.webplatform.device, deviceField, {
+                get: function () {
+                    throw new Error(errMsg);
+                }
+            });
 
-            index.IMEI(success, fail, null, null);
-
-            expect(mockedPPS.init).toHaveBeenCalled();
-            expect(mockedPPS.open).toHaveBeenCalledWith(path, mode);
-            expect(mockedPPS.read).not.toHaveBeenCalled();
-            expect(mockedPPS.close).toHaveBeenCalled();
+            index[indexField](success, fail);
             expect(success).not.toHaveBeenCalled();
-            expect(fail).toHaveBeenCalledWith(-1, "Cannot open PPS object");
+            expect(fail).toHaveBeenCalledWith(-1, errMsg);
+        }
+
+        describe("uuid", function () {
+            it("calls success when devicepin is truthy", function () {
+                successCase("uuid","devicePin");
+            });
+
+            it("calls fail when devicepin is not there", function () {
+                missingCase("uuid");
+            });
+
+            it("calls fail when devicePin throws an error", function () {
+                errorCase("uuid", "devicePin");
+            });
+        });
+
+        describe("IMSI", function () {
+            it("calls success when IMSI is truthy", function () {
+                successCase("IMSI","IMSI");
+            });
+
+            it("calls fail when IMSI is not there", function () {
+                missingCase("IMSI");
+            });
+
+            it("calls fail when devicePin throws an error", function () {
+                errorCase("IMSI", "IMSI");
+            });
+        });
+
+        describe("IMEI", function () {
+            it("calls success when IMEI is truthy", function () {
+                successCase("IMEI","IMEI");
+            });
+
+            it("calls fail when IMEI is not there", function () {
+                missingCase("IMEI");
+            });
+
+            it("calls fail when devicePin throws an error", function () {
+                errorCase("IMEI", "IMEI");
+            });
         });
     });
 });
