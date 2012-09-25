@@ -29,11 +29,12 @@ function getFieldValue(field) {
     return value;
 }
 
-function defineGetter(field) {
+function defineGetter(field, getterArg) {
+    var getter = getterArg || function () {
+        return getFieldValue(field);
+    };
     Object.defineProperty(_self, field, {
-        get: function () {
-            return getFieldValue(field);
-        }
+        get: getter
     });
 }
 
@@ -49,8 +50,10 @@ _self.getFontInfo = function () {
     return window.webworks.execSync(ID, "getFontInfo");
 };
 
-defineGetter("language");
 defineGetter("region");
+defineGetter("language", function () {
+    return navigator.language;
+});
 
 window.webworks.defineReadOnlyField(_self, "ALLOW", 0);
 window.webworks.defineReadOnlyField(_self, "DENY", 1);

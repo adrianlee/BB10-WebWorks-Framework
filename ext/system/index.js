@@ -17,7 +17,6 @@ var Whitelist = require("../../lib/policy/whitelist").Whitelist,
     _whitelist = new Whitelist(),
     _event = require("../../lib/event"),
     _utils = require("../../lib/utils"),
-    _ppsUtils = require("../../lib/pps/ppsUtils"),
     _ppsEvents = require("../../lib/pps/ppsEvents"),
     // This object is used by action map and contains links between pps object fields monitored for change in that object helper methods
     // to analyze if the value is the one callback should be invoked and fields name and value format as would appear on return.
@@ -206,55 +205,10 @@ function getDeviceProperty(prop, success, fail) {
 
     try {
         result = window.qnx.webplatform.device[prop];
+        success(result);
     } catch (err) {
         fail(ERROR_ID, err.message);
         return;
-    }
-
-    if (result) {
-        success(result);
-    } else {
-        fail(-1, "Cannot retrieve data from system");
-    }
-}
-
-// Get device language object from /pps/services/confstr/_CS_LOCALE
-function readDeviceLanguage(success, fail) {
-    var PPSUtils = _ppsUtils.createObject(),
-        language = "";
-
-    PPSUtils.init();
-
-    if (PPSUtils.open("/pps/services/confstr/_CS_LOCALE", "0")) {
-        language = PPSUtils.read()._CS_LOCALE;
-    }
-
-    PPSUtils.close();
-
-    if (language !== "") {
-        success(language);
-    } else {
-        fail(-1, "Cannot read the device language");
-    }
-}
-
-// Get device region setting from /pps/services/locale/settings object
-function readDeviceRegion(success, fail) {
-    var PPSUtils = _ppsUtils.createObject(),
-        region = "";
-
-    PPSUtils.init();
-
-    if (PPSUtils.open("/pps/services/locale/settings", "0")) {
-        region = PPSUtils.read().region;
-    }
-
-    PPSUtils.close();
-
-    if (region !== "") {
-        success(region);
-    } else {
-        fail(-1, "Cannot read the device region setting");
     }
 }
 
@@ -322,11 +276,15 @@ module.exports = {
         getDeviceProperty("deviceName", success, fail);
     },
 
-    language: function (success, fail) {
-        readDeviceLanguage(success, fail);
-    },
-
     region: function (success, fail) {
-        readDeviceRegion(success, fail);
+        var region;
+
+        try {
+            region = window.qnx.webplatform.getApplication().systemRegion;
+
+            success(region);
+        } catch (e) {
+            fail(ERROR_ID, e.message);
+        }
     }
 };
