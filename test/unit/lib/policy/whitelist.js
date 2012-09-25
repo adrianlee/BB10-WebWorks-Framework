@@ -248,6 +248,40 @@ describe("whitelist", function () {
             expect(whitelist.isAccessAllowed("http://www.awesome.com:9000")).toEqual(true);
         });
 
+        it("allows api access for ports given just the whitelist url", function () {
+            var whitelist = new Whitelist({
+                hasMultiAccess : false,
+                accessList : [{
+                    uri : "http://www.awesome.com",
+                    allowSubDomain : true,
+                    features : [{
+                        id : "blackberry.app",
+                        required : true,
+                        version : "1.0.0"
+                    }]
+                }]
+            });
+
+            expect(whitelist.isFeatureAllowed("http://www.awesome.com:8080", "blackberry.app")).toEqual(true);
+        });
+
+        it("allows api access for child pages with ports given just the whitelist url", function () {
+            var whitelist = new Whitelist({
+                hasMultiAccess : false,
+                accessList : [{
+                    uri : "http://smoketest8-vmyyz.labyyz.testnet.rim.net/",
+                    allowSubDomain : true,
+                    features : [{
+                        id : "blackberry.app",
+                        required : true,
+                        version : "1.0.0"
+                    }]
+                }]
+            });
+
+            expect(whitelist.isFeatureAllowed("http://www.smoketest8-vmyyz.labyyz.testnet.rim.net:8080//webworks.html", "blackberry.app")).toEqual(true);
+        });
+
         it("can allow folder level access of whitelisted uris", function () {
             var whitelist = new Whitelist({
                 hasMultiAccess : false,

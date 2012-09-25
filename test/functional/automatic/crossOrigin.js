@@ -130,26 +130,29 @@ describe("White listing", function () {
 
     function testExternalWebApiRuns(domain, path) {
         var origin = 'http://' + domain,
-            url = origin + (path || '/webworks.html'),
+            url = origin + (path || '/a/webworks.html'),
             iframe,
             reply = null,
             receiveMessage = function (e) {
-                reply = e.data;
+                if (e.data === 'wwready') {
+                    iframe.contentWindow.postMessage('ping', origin);
+                } else {
+                    reply = e.data;
+                }
             };
 
         runs(function () {
             window.addEventListener('message', receiveMessage, false);
             iframe = testHtmlElementLoads('iframe', {src: url});
         });
-        runs(function () {
-            iframe.contentWindow.postMessage('ping', origin);
-        });
         waitsFor(function () {
             return reply !== null;
-        });
+        }, "the web api to responds", 10000);
         runs(function () {
             expect(reply).toBe(blackberry.app.id);
+            window.removeEventListener('message', receiveMessage);
         });
+
         return iframe;
     }
 
@@ -164,9 +167,9 @@ describe("White listing", function () {
     });
 
     // 02. Allowed access from local startup page to external resources through URI domains
-    xdescribe("allowing access to domains", function () {
+    describe("allowing access to domains", function () {
 
-        var whitelistedDomain = "Smoketest8-vmyyz.labyyz.testnet.rim.net";
+        var whitelistedDomain = "smoketest8-vmyyz.labyyz.testnet.rim.net:8080";
 
         // Step 1: Validate that if URI domain is provided in config.xml,
         // access from widget to external html page, image, Javascript and Web API functions
@@ -199,19 +202,26 @@ describe("White listing", function () {
         describe("with url parameters", function () {
 
             it("can append params to a path whitelisted with ?*", function () {
-                testXhrGetLoadsUrl("http://Smoketest3-vmyyz.labyyz.testnet.rim.net/index.html?a=b&c=d&v=" + generateSerial());
+                testXhrGetLoadsUrl("http://smoketest3-vmyyz.labyyz.testnet.rim.net:8080/index.html?a=b&c=d&v=" + generateSerial());
             });
 
             it("cannot append params to a path whitelisted without ?*", function () {
                 //Will not throw an exception because its not blocked by webkit
-                testXhrGetThrowsAlert("http://Smoketest4-vmyyz.labyyz.testnet.rim.net/index.html?a=b&c=d&v=" + generateSerial());
+                testXhrGetThrowsAlert("http://smoketest4-vmyyz.labyyz.testnet.rim.net:8080/index.html?a=b&c=d&v=" + generateSerial());
             });
         });
 
         // Step 3: Widget has links that include port number. Validate that clicking the link
         // opens an expected page (page with a link "Display current time").
+        //
+        //THIS TEST SHOULD BE REVERSED AND EXPANDED.
+        //Currently all pages are using a port number so in fact we need the negative of this highly tested
+        //
+        //
+        //
+        //
         it("can follow a link including a port number", function () {
-            var url = 'http://' + whitelistedDomain + ':80/index.html';
+            var url = 'http://' + whitelistedDomain + '/index.html';
             return testHtmlElementLoads('iframe', {src: url });
         });
 
@@ -220,7 +230,7 @@ describe("White listing", function () {
     // 03. Disallowed access from local startup page to external resources through URI domains
     describe("disallowing access to domains", function () {
 
-        var blacklistedDomain = "Smoketest2-vmyyz.labyyz.testnet.rim.net";
+        var blacklistedDomain = "smoketest2-vmyyz.labyyz.testnet.rim.net:8080";
 
         // Step 1: Validate that access to external html page, image, Javascript, Web API functions
         // is not allowed from the widget, if this particular URI domain is not provided in config.xml,
@@ -247,11 +257,15 @@ describe("White listing", function () {
         // of URI specified in the <access> element in config.xml.
         describe("at specific paths", function () {
             it("can access /a/index.html", function () {
-                testXhrGetLoadsUrl("http://Smoketest4-vmyyz.labyyz.testnet.rim.net/a/index.html");
+                testXhrGetLoadsUrl("http://smoketest4-vmyyz.labyyz.testnet.rim.net:8080/a/index.html");
             });
             //This is NOT blocked by webkit so no exception will be throw, but an alert will still be called
             it("cannot access sibling folder /b/index.html", function () {
-                testXhrGetThrowsAlert("http://Smoketest4-vmyyz.labyyz.testnet.rim.net/b/index.html");
+                testXhrGetThrowsAlert("http://smoketest4-vmyyz.labyyz.testnet.rim.net:8080/b/index.html");
+            });
+            // This IS blocked since we don't have an access element for the parent directory
+            it("cannot access the parent resource index.html", function () {
+                testXhrGetThrowsAlert("http://smoketest4-vmyyz.labyyz.testnet.rim.net:8080/parent/index.html");
             });
         });
     });
@@ -259,7 +273,7 @@ describe("White listing", function () {
     // 04. Allowed access from local startup page to external resources through URI subdomains
     describe("allowing access to subdomains", function () {
 
-        var whitelistedSubdomain = "www.Smoketest8-vmyyz.labyyz.testnet.rim.net";
+        var whitelistedSubdomain = "www.smoketest8-vmyyz.labyyz.testnet.rim.net:8080";
 
         // Step 1: Validate that if URI domain is provided in config.xml where subdomain=true,
         // access from widget to html page, image, javascript,  Web API on external server,
@@ -290,14 +304,14 @@ describe("White listing", function () {
         // redirects are listed in the <access> elements and subdomains=true, e.g.
         // for http://www.gmail.com the following elements should appear in config.xml:
         it("can follow a redirect", function () {
-            testXhrGetLoadsUrl('http://Smoketest8-vmyyz.labyyz.testnet.rim.net/redirect.php?url=' + encodeURIComponent('http://smoketest1-vmyyz.labyyz.testnet.rim.net:8080/index.html'));
+            testXhrGetLoadsUrl('http://smoketest8-vmyyz.labyyz.testnet.rim.net:8080/redirect.php?url=' + encodeURIComponent('http://smoketest1-vmyyz.labyyz.testnet.rim.net:8080/index.html'));
         });
     });
 
     // 05. Disallowed access from local startup page to external resources through URI subdomains
     describe("disallowing access to subdomains", function () {
 
-        var blacklistedSubdomain = "www.Smoketest1-vmyyz.labyyz.testnet.rim.net";
+        var blacklistedSubdomain = "www.smoketest1-vmyyz.labyyz.testnet.rim.net:8080";
 
         // Step 1: Validate that access to external html page / image / javascript,
         // which URIs include subdomains, is not allowed, if subdomains=false, e.g.,
@@ -326,7 +340,7 @@ describe("White listing", function () {
         // <access uri="rim.net" >
         // then access to http://xyz.rim.net is disallowed
         it("defaults to disallowing subdomains", function () {
-            testXhrGetFailsToLoadDocument('www.Smoketest5-vmyyz.labyyz.testnet.rim.net');
+            testXhrGetFailsToLoadDocument('www.smoketest5-vmyyz.labyyz.testnet.rim.net:8080');
         });
 
         // Step 3
@@ -337,13 +351,13 @@ describe("White listing", function () {
             // <access uri="http://abc.com" subdomains="false" /> </access>
             // <access uri="http://xyz.abc.com"/></access>
             it("explicitly allows subdomains", function () {
-                testXhrGetLoadsDocument('www.Smoketest6-vmyyz.labyyz.testnet.rim.net');
+                testXhrGetLoadsDocument('www.smoketest6-vmyyz.labyyz.testnet.rim.net:8080');
             });
 
             // 2: Validate that access to http://another.abc.com should be disallowed
             // and access to http://xyz.abc.com allowed
             it("disallows subdomains not explicitly permitted", function () {
-                testXhrGetFailsToLoadDocument('www2.Smoketest6-vmyyz.labyyz.testnet.rim.net');
+                testXhrGetFailsToLoadDocument('www2.smoketest6-vmyyz.labyyz.testnet.rim.net:8080');
             });
         });
     });
@@ -359,21 +373,22 @@ describe("White listing", function () {
         // </access>
         // The second URI (with subdomain specified) overloads the first.
         it("allows web api access explicitly set on a subdomain", function () {
-            testExternalWebApiRuns('www.Smoketest7-vmyyz.labyyz.testnet.rim.net');
+            testHtmlElementLoads('iframe', {src: 'http://www.smoketest7-vmyyz.labyyz.testnet.rim.net:8080/webworks.html' });
+            testExternalWebApiRuns('www.smoketest7-vmyyz.labyyz.testnet.rim.net:8080');
         });
 
         // 4: Start page of the widget is local and has link to external html page,
         // where Web API functions are called from.
         // Config.xml has declaration of Web APIs for certain domain that includes
         // path to a folder in web server directory structure:
-        // <access uri="http://rim.net/FFMB_OTA" subdomains="true">
+        // <access uri="http://rim.net:8080/FFMB_OTA" subdomains="true">
         //         <feature id=... />
         // </access>
         // Verify that access to Web API functions declared to this folder is allowed,
         // whereas access to Web API functions declared to different folder is not.
         it("allows web api access explicitly set on a folder", function () {
-            testHtmlElementLoads('iframe', {src: 'http://Smoketest8-vmyyz.labyyz.testnet.rim.net/a/webworks.html' });
-            testExternalWebApiRuns('Smoketest8-vmyyz.labyyz.testnet.rim.net', '/a/webworks.html');
+            testHtmlElementLoads('iframe', {src: 'http://smoketest8-vmyyz.labyyz.testnet.rim.net:8080/a/webworks.html' });
+            testExternalWebApiRuns('smoketest8-vmyyz.labyyz.testnet.rim.net:8080', '/a/webworks.html');
         });
     });
 
