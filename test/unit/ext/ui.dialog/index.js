@@ -16,6 +16,7 @@
 
 var root = __dirname + "/../../../../",
     webview = require(root + "lib/webview"),
+    overlayWebView = require(root + "lib/overlayWebView"),
     index;
 
 describe("ui.dialog index", function () {
@@ -47,11 +48,13 @@ describe("ui.dialog index", function () {
         args.message = encodeURIComponent(args.message);
         args.buttons = encodeURIComponent(JSON.stringify(args.buttons));
         args.settings = encodeURIComponent(JSON.stringify(args.settings));
-        
+    
+        spyOn(overlayWebView, "showDialog");
         index.customAskAsync(successCB, failCB, args);
         
-        expect(webview.windowGroup).toHaveBeenCalled();
-        expect(GLOBAL.JNEXT.invoke).toHaveBeenCalled();
+        //expect(webview.windowGroup).toHaveBeenCalled();
+        expect(overlayWebView.showDialog).toHaveBeenCalled();
+        //expect(GLOBAL.JNEXT.invoke).toHaveBeenCalled();
     });
     
     it("makes sure that a message is specified", function () {

@@ -55,13 +55,12 @@ module.exports = {
             return;
         }
 
-        var  messageObj = {};
+        var  messageObj = {
+            title : "Web Inspector Enabled",
+            htmlmessage :  "Test Message",
+            dialogType :'JavaScriptAlert'
+        };
 
-        messageObj.title = "Web Inspector Enabled";
-
-        messageObj.htmlmessage =  "Test Message";
-        
-        messageObj.dialogType = 'JavaScriptAlert';
         overlayWebView.showDialog(messageObj);
         
         //dialog.show(args.eventId, args.message, args.buttons, args.settings);
