@@ -17,19 +17,21 @@
 var pimCalendar,
     _event = require("../../lib/event"),
     _utils = require("../../lib/utils"),
-    config = require("../../lib/config");/*,
-    ContactError = require("./ContactError");*/
+    config = require("../../lib/config"),
+    CalendarError = require("./CalendarError");
 
-function checkPermission(success, eventId) {/*
+function checkPermission(success, eventId) {
     if (!_utils.hasPermission(config, "access_pimdomain_calendars")) {
         _event.trigger(eventId, {
-            "_success": false,
-            "code": ContactError.PERMISSION_DENIED_ERROR
+            "result": escape(JSON.stringify({
+                "_success": false,
+                "code": CalendarError.PERMISSION_DENIED_ERROR
+            }))
         });
         success();
         return false;
     }
-*/
+
     return true;
 }
 
@@ -86,20 +88,29 @@ module.exports = {
     },
 
     getCalendarFolders: function (success, fail, args) {
-/*
         if (!_utils.hasPermission(config, "access_pimdomain_calendars")) {
             success(null);
             return;
         }
-*/
+
         success(pimCalendar.getCalendarFolders());
     },
 
     getDefaultCalendarFolder: function (success, fail, args) {
+        if (!_utils.hasPermission(config, "access_pimdomain_calendars")) {
+            success(null);
+            return;
+        }
+
         success(pimCalendar.getDefaultCalendarFolder());
     },
 
     getTimezones: function (success, fail, args) {
+        if (!_utils.hasPermission(config, "access_pimdomain_calendars")) {
+            success(null);
+            return;
+        }
+
         success(pimCalendar.getTimezones());
     }
 };
