@@ -16,6 +16,7 @@
 var CalendarEvent,
     _ID = require("./manifest.json").namespace, // normally 2nd-level require does not work in client side, but manifest has already been required in client.js, so this is ok
     utils = require("./../../lib/utils"),
+    calendarUtils = require("./calendarUtils"),
     CalendarError = require("./CalendarError"),
     CalendarRepeatRule = require("./CalendarRepeatRule"),
     CalendarFolder = require("./CalendarFolder");
@@ -57,30 +58,30 @@ CalendarEvent = function (properties) {
 
 CalendarEvent.prototype.save = function (onSaveSuccess, onSaveError) {
     var args = {},
-        key,
-        innerKey,
         successCallback = onSaveSuccess,
         errorCallback = onSaveError,
         saveCallback,
-        errorObj;
+        errorObj,
+        exceptionDatesStrings = [],
+        that = this;
 
-    for (key in this) {
-        if (this.hasOwnProperty(key) && this[key] !== null) {
-            if (Object.prototype.toString.call(this[key]) === "[object Object]") {
+    Object.getOwnPropertyNames(this).forEach(function (key) {
+        if (that[key] !== null) {
+            if (calendarUtils.isObject(that[key])) {
                 args[key] = {};
 
-                for (innerKey in this[key]) {
-                    if (this[key][innerKey] !== null) {
-                        args[key][innerKey] = this[key][innerKey];
+                Object.getOwnPropertyNames(that[key]).forEach(function (innerKey) {
+                    if (that[key][innerKey] !== null) {
+                        args[key][innerKey] = that[key][innerKey];
                     }
-                }
-            } else if (Object.prototype.toString.call(this[key]) === "[object Date]") {
-                args[key] = this[key].toISOString();
+                });
+            } else if (calendarUtils.isDate(that[key])) {
+                args[key] = that[key].toISOString();
             } else {
-                args[key] = this[key];
+                args[key] = that[key];
             }
         }
-    }
+    });
 
     if (args.attendees) {
         if (this.folder) {
@@ -94,7 +95,7 @@ CalendarEvent.prototype.save = function (onSaveSuccess, onSaveError) {
             }
         }
 
-        for (key in args.attendees) {
+        Object.getOwnPropertyNames(args.attendees).forEach(function (key) {
             if (args.attendees[key].contactId && !window.isNaN(args.attendees[key].contactId)) {
                 args.attendees[key].contactId = window.parseInt(args.attendees[key].contactId);
             }
@@ -102,14 +103,16 @@ CalendarEvent.prototype.save = function (onSaveSuccess, onSaveError) {
             if (args.attendees[key].id && !window.isNaN(args.attendees[key].id)) {
                 args.attendees[key].id = window.parseInt(args.attendees[key].id);
             }
-        }
+        });
     }
 
     if (args.recurrence) {
         if (args.recurrence.exceptionDates) {
-            for (key in args.recurrence.exceptionDates) {
-                args.recurrence.exceptionDates[key] = args.recurrence.exceptionDates[key].toISOString();
-            }
+            args.recurrence.exceptionDates.forEach(function (d) {
+                exceptionDatesStrings.push(d.toISOString());
+            });
+
+            args.recurrence.exceptionDates = exceptionDatesStrings;
         }
 
         if (args.recurrence.expires) {
@@ -147,12 +150,7 @@ CalendarEvent.prototype.save = function (onSaveSuccess, onSaveError) {
 
         if (result._success) {
             if (successCallback) {
-                //contactUtils.populateContact(result);
-                if (result.event.recurrence) {
-                    result.event.recurrence = new CalendarRepeatRule(result.event.recurrence);
-                }
-
-                newEvent = new CalendarEvent(result.event);
+                newEvent = new CalendarEvent(calendarUtils.populateEvent(result.event));
                 successCallback(newEvent);
             }
         } else {
@@ -173,8 +171,8 @@ CalendarEvent.prototype.remove = function (onRemoveSuccess, onRemoveError) {
         errorCallback = onRemoveError,
         removeCallback;
 
-    args.accountId = window.parseInt(this.folder.accountId); // TODO folder is not set unless the developer re-save the event upon creation, need to check this
-    args.calEventId = window.parseInt(this.id);
+    args.accountId = this.folder ? window.parseInt(this.folder.accountId) : "";
+    args.calEventId = this.id ? window.parseInt(this.id) : "";
     args._eventId = utils.guid();
 
     removeCallback = function (args) {
@@ -193,8 +191,15 @@ CalendarEvent.prototype.remove = function (onRemoveSuccess, onRemoveError) {
         }
     };
 
-    window.webworks.event.once(_ID, args._eventId, removeCallback);
-    return window.webworks.execAsync(_ID, "remove", args);
+    // accountId is set only if the event is persisted in the device, if accountId is not set, there is nothing to do because the event has not been persisted;
+    if (args.accountId) {
+        window.webworks.event.once(_ID, args._eventId, removeCallback);
+        return window.webworks.execAsync(_ID, "remove", args);
+    } else {
+        if (successCallback) {
+            successCallback();
+        }
+    }
 };
 
 CalendarEvent.prototype.createExceptionEvent = function (originalStartTime) {

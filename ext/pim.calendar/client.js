@@ -17,14 +17,14 @@
 var _self = {},
     _ID = require("./manifest.json").namespace,
     utils = require("./../../lib/utils"),
-    calendarUtils = require("./calendarUtils"),
     CalendarEvent = require("./CalendarEvent"),
     CalendarError = require("./CalendarError"),
     CalendarFindOptions = require("./CalendarFindOptions"),
     CalendarFolder = require("./CalendarFolder"),
     CalendarRepeatRule = require("./CalendarRepeatRule"),
     CalendarEventFilter = require("./CalendarEventFilter"),
-    Attendee = require("./Attendee");
+    Attendee = require("./Attendee"),
+    calendarUtils = require("./calendarUtils");
 
 function invokeCallback(callback, args) {
     if (callback && typeof callback === "function") {
@@ -158,9 +158,8 @@ _self.findEvents = function (findOptions, onFindSuccess, onFindError) {
         if (result._success) {
             if (events) {
                 events.forEach(function (event) {
-                    // contactUtils.populateContact(contact);
                     event["folder"] = result.folders[event.accountId + "-" + event.folderId];
-                    realEvents.push(new CalendarEvent(event));
+                    realEvents.push(new CalendarEvent(calendarUtils.populateEvent(event)));
                 });
             }
             console.log(events);

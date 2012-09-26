@@ -83,7 +83,8 @@ beforeEach(function () {
 });
 
 describe("blackberry.pim.calendar", function () {
-    var calEvent;
+    var calEvent,
+        originalEventId;
 
     describe("Object and constants definitions", function () {
         it('blackberry.pim.calendar should exist', function () {
@@ -371,6 +372,7 @@ describe("blackberry.pim.calendar", function () {
                     expect(created.summary).toBe("WebWorksTest create event 1");
                     expect(created.location).toBe("Location 1");
                     calEvent = created;
+                    originalEventId = calEvent.id;
                 }),
                 errorCb = jasmine.createSpy();
 
@@ -407,6 +409,7 @@ describe("blackberry.pim.calendar", function () {
                 newAllDay = false,
                 successCb = jasmine.createSpy().andCallFake(function (saved) {
                     called = true;
+                    expect(saved.id).toEqual(originalEventId);
                     expect(saved.summary).toBe(newSummary);
                     expect(saved.location).toBe(newLocation);
                     expect(saved.allDay).toBe(newAllDay);
@@ -513,6 +516,76 @@ describe("blackberry.pim.calendar", function () {
 
                 evt = cal.createEvent({"summary": summary, "location": venue, "start": start, "end": end, "attendees": [attendee1, attendee2]});
                 evt.save(successCb, errorCb);
+            }
+        });
+
+        it('Can add attendees to an existing event', function () {
+            if (cal.getDefaultCalendarFolder().supportsParticipants) {
+                var start = new Date("Feb 2, 2013, 12:00"),
+                    end = new Date("Feb 2, 2013, 12:30"),
+                    venue = "some location",
+                    summary = "WebWorksTest event without attendees",
+                    called1 = false,
+                    called2 = false,
+                    evt,
+                    errorCb = jasmine.createSpy().andCallFake(function () {
+                        if (!called1) {
+                            called1 = true;
+                            return;
+                        }
+
+                        if (!called2) {
+                            called2 = true;
+                        }
+                    }),
+                    successCb1 = jasmine.createSpy().andCallFake(function (created) {
+                        called1 = true;
+                        evt = created;
+                    }),
+                    successCb2 = jasmine.createSpy().andCallFake(function () {
+                        called2 = true;
+                        findByEventsByPrefix("WebWorksTest event with 1 attendee added", function (events) {
+                            expect(events.length).toBe(1);
+                            expect(events[0].id).not.toBe("");
+                            expect(events[0].start.toISOString()).toBe(new Date("Feb 2, 2013, 12:00").toISOString());
+                            expect(events[0].end.toISOString()).toBe(new Date("Feb 2, 2013, 12:30").toISOString());
+                            expect(events[0].allDay).toBeFalsy();
+                            expect(events[0].summary).toBe("WebWorksTest event with 1 attendee added");
+                            expect(events[0].location).toBe("some location");
+                            expect(events[0].attendees).toBeDefined();
+                            expect(events[0].attendees.length).toBe(1);
+                            expect(events[0].attendees[0].email).toBe("abc@blah.com");
+                            expect(events[0].attendees[0].name).toBe("John Doe");
+                        });
+                    }),
+                    attendee = new Attendee({
+                        "email": "abc@blah.com",
+                        "name": "John Doe",
+                        "owner": true,
+                        "role": Attendee.ROLE_CHAIR,
+                        "type": Attendee.TYPE_HOST
+                    });
+
+                evt = cal.createEvent({"summary": summary, "location": venue, "start": start, "end": end});
+                evt.save(successCb1, errorCb);
+
+                waitsFor(function () {
+                    return called1;
+                }, "Event not saved", 15000);
+
+                evt.summary = "WebWorksTest event with 1 attendee added";
+                evt.attendees = [attendee];
+                evt.save(successCb2, errorCb);
+
+                waitsFor(function () {
+                    return called2;
+                }, "Attendee not added to event", 15000);
+
+                runs(function () {
+                    expect(successCb1).toHaveBeenCalled();
+                    expect(successCb2).toHaveBeenCalled();
+                    expect(errorCb).not.toHaveBeenCalled();
+                });
             }
         });
     });

@@ -13,8 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+var CalendarRepeatRule = require("./CalendarRepeatRule");
+
 module.exports = {
-    isDate: function (date) {
-        return Object.prototype.toString.call(date) === '[object Date]';
+    isDate: function (obj) {
+        return Object.prototype.toString.call(obj) === "[object Date]";
+    },
+    isObject: function (obj) {
+		return Object.prototype.toString.call(obj) === "[object Object]";
+    },
+    populateEvent: function (props) {
+        if (props.recurrence) {
+            props.recurrence = new CalendarRepeatRule(props.recurrence);
+        }
+
+        return props;
     }
 };
