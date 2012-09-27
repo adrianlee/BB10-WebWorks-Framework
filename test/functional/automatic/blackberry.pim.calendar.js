@@ -1242,6 +1242,138 @@ describe("blackberry.pim.calendar", function () {
             });
         });
 
+        it('can sort search results by summary (desc)', function () {
+            var called = false,
+                filter = new CalendarEventFilter("WebWorksTest ab", null, null, null, false),
+                findOptions = new CalendarFindOptions(filter, [{"fieldName": CalendarFindOptions.SORT_FIELD_SUMMARY, "desc": true}], CalendarFindOptions.DETAIL_FULL),
+                start = new Date("Dec 31, 2012"),
+                end = new Date("Jan 01, 2013"),
+                summary = "WebWorksTest ab",
+                location = "Work",
+                successCb = jasmine.createSpy().andCallFake(function (events) {
+                    called = true;
+                    expect(events.length).toBe(2);
+                    expect(events[0].summary).toBe("WebWorksTest abc");
+                    expect(events[1].summary).toBe("WebWorksTest ab");
+                }),
+                errorCb = jasmine.createSpy().andCallFake(function () {
+                    called = true;
+                }),
+                created;
+
+            created = cal.createEvent({
+                "summary": summary,
+                "location": location,
+                "allDay": true,
+                "start": start,
+                "end": end
+            });
+
+            created.save(function () {
+                cal.findEvents(findOptions, successCb, errorCb);
+            });
+
+            waitsFor(function () {
+                return called;
+            }, "Find callback not invoked", 15000);
+
+            runs(function () {
+                expect(successCb).toHaveBeenCalled();
+                expect(errorCb).not.toHaveBeenCalled();
+            });
+        });
+
+        it('can sort search results by start time (asc)', function () {
+            var called = false,
+                filter = new CalendarEventFilter("WebWorksTest ab", null, null, null, false),
+                findOptions = new CalendarFindOptions(filter, [{"fieldName": CalendarFindOptions.SORT_FIELD_START, "desc": false}], CalendarFindOptions.DETAIL_FULL),
+                start = new Date("Dec 30, 2012"),
+                end = new Date("Dec 31, 2012"),
+                summary = "WebWorksTest abcd",
+                location = "Work",
+                successCb = jasmine.createSpy().andCallFake(function (events) {
+                    called = true;
+                    expect(events.length).toBe(3);
+                    expect(events[0].summary).toBe("WebWorksTest abcd");
+                }),
+                errorCb = jasmine.createSpy().andCallFake(function () {
+                    called = true;
+                }),
+                created;
+
+            created = cal.createEvent({
+                "summary": summary,
+                "location": location,
+                "allDay": true,
+                "start": start,
+                "end": end
+            });
+
+            created.save(function () {
+                cal.findEvents(findOptions, successCb, errorCb);
+            });
+
+            waitsFor(function () {
+                return called;
+            }, "Find callback not invoked", 15000);
+
+            runs(function () {
+                expect(successCb).toHaveBeenCalled();
+                expect(errorCb).not.toHaveBeenCalled();
+            });
+        });
+
+        it('can sort search results by end time (asc)', function () {
+            var called = false,
+                filter = new CalendarEventFilter("WebWorksTest ab", null, null, null, false),
+                findOptions = new CalendarFindOptions(filter, [{"fieldName": CalendarFindOptions.SORT_FIELD_END, "desc": false}], CalendarFindOptions.DETAIL_FULL),
+                successCb = jasmine.createSpy().andCallFake(function (events) {
+                    called = true;
+                    expect(events.length).toBe(3);
+                    expect(events[0].summary).toBe("WebWorksTest abcd");
+                }),
+                errorCb = jasmine.createSpy().andCallFake(function () {
+                    called = true;
+                });
+
+            cal.findEvents(findOptions, successCb, errorCb);
+
+            waitsFor(function () {
+                return called;
+            }, "Find callback not invoked", 15000);
+
+            runs(function () {
+                expect(successCb).toHaveBeenCalled();
+                expect(errorCb).not.toHaveBeenCalled();
+            });
+        });
+
+        it('can sort search results by location (asc)', function () {
+            var called = false,
+                filter = new CalendarEventFilter("WebWorksTest ab", null, null, null, false),
+                findOptions = new CalendarFindOptions(filter, [{"fieldName": CalendarFindOptions.SORT_FIELD_LOCATION, "desc": false}], CalendarFindOptions.DETAIL_FULL),
+                successCb = jasmine.createSpy().andCallFake(function (events) {
+                    called = true;
+                    expect(events.length).toBe(3); // TODO: this fails, finding out more details from PIM folks
+                    expect(events[0].summary).toBe("WebWorksTest abc");
+                    expect(events[0].location).toBe("Home");
+                }),
+                errorCb = jasmine.createSpy().andCallFake(function () {
+                    called = true;
+                });
+
+            cal.findEvents(findOptions, successCb, errorCb);
+
+            waitsFor(function () {
+                return called;
+            }, "Find callback not invoked", 15000);
+
+            runs(function () {
+                expect(successCb).toHaveBeenCalled();
+                expect(errorCb).not.toHaveBeenCalled();
+            });
+        });
+
         it("Signal the end of all find tests", function () {
             doneTestingFind = true;
         });
