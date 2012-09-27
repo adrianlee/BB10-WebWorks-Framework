@@ -125,6 +125,7 @@ Json::Value PimCalendarQt::Save(const Json::Value& attributeObj)
 {
     bbpim::CalendarService service;
 
+    fprintf(stderr, "#### PimCalendarQt::Save: Starting");
     if (!attributeObj.isMember("id") || attributeObj["id"].isNull() || !attributeObj["id"].isInt()) {
         return CreateCalendarEvent(attributeObj);
     } else {
@@ -386,6 +387,7 @@ Json::Value PimCalendarQt::EditCalendarEvent(bbpim::CalendarEvent& calEvent, con
 
     // TODO Create some stringToEnumMap to use switch or private function?
 
+    fprintf(stderr, "#### EditCalendarEvent: Starting");
     for (int i = 0; i < attributeKeys.size(); i++) {
         const std::string key = attributeKeys[i];
 
@@ -541,25 +543,30 @@ Json::Value PimCalendarQt::EditCalendarEvent(bbpim::CalendarEvent& calEvent, con
     }
 
     bbpim::CalendarService service;
-    service.updateEvent(calEvent, bbpim::Notification());
+    if (service.updateEvent(calEvent, bbpim::Notification()) == 0) {
+        fprintf(stderr, "#### updateEvent: OK");
+        for (int i = 0; i < exceptionDates.size(); i++) {
+            bbpim::CalendarEvent exceptionEvent;
+            exceptionEvent.setStartTime(exceptionDates[i]);
+            exceptionEvent.setId(calEvent.id());
+            exceptionEvent.setAccountId(calEvent.accountId());
+            service.createRecurrenceExclusion(exceptionEvent, bbpim::Notification());
+        }
 
-    for (int i = 0; i < exceptionDates.size(); i++) {
-        bbpim::CalendarEvent exceptionEvent;
-        exceptionEvent.setStartTime(exceptionDates[i]);
-        exceptionEvent.setId(calEvent.id());
-        exceptionEvent.setAccountId(calEvent.accountId());
-        service.createRecurrenceExclusion(exceptionEvent, bbpim::Notification());
-    }
-
-    if (calEvent.isValid()) {
-        returnObj["event"] = populateEvent(calEvent, false);
-        returnObj["_success"] = true;
+        if (calEvent.isValid()) {
+            returnObj["event"] = populateEvent(calEvent, false);
+            returnObj["_success"] = true;
+        } else {
+            returnObj["_success"] = false;
+            returnObj["code"] = UNKNOWN_ERROR;
+        }
+        return returnObj;
     } else {
+        fprintf(stderr, "#### updateEvent: ERROR");
         returnObj["_success"] = false;
         returnObj["code"] = UNKNOWN_ERROR;
+        return returnObj;
     }
-
-    return returnObj;
 }
 
 /****************************************************************
@@ -654,7 +661,7 @@ Json::Value PimCalendarQt::getCalendarFolderJson(const bbpim::CalendarFolder& fo
 
     QMap<QString, QVariant> temp;
     temp = variantMap.value("capabilities").toMap();
-    fprintf(stderr, "map is empty? %s\n", temp.empty() ? "true" : "false");
+    fprintf(stderr, "#### map is empty? %s\n", temp.empty() ? "true" : "false");
     for (QMap<QString, QVariant>::const_iterator i = temp.constBegin(); i != temp.constEnd(); i++) {
         fprintf(stderr, "Key: %s\n", i.key().toStdString().c_str());
     }
