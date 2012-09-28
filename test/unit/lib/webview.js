@@ -2,6 +2,7 @@ describe("webview", function () {
     var libPath = "./../../../",
         request = require(libPath + "lib/request"),
         utils = require(libPath + "lib/utils"),
+        childWebView = require(libPath + "lib/childWebView"),
         webview,
         mockedController,
         mockedWebview,
@@ -214,5 +215,20 @@ describe("webview", function () {
             expect(webview.windowGroup()).toEqual(mockedWebview.windowGroup);
         });
     });
-
+    describe("opens new windows by calling childWebView.open", function () {
+        it("responsds to onOpenWindow", function () {
+            var ready = jasmine.createSpy();
+            spyOn(childWebView, 'open');
+            runs(function () {
+                webview.create(ready);
+            });
+            waitsFor(function () {
+                return ready.wasCalled;
+            });
+            runs(function () {
+                mockedWebview.onOpenWindow('{"url": "http://www.google.com"}');
+                expect(childWebView.open).toHaveBeenCalledWith('http://www.google.com');
+            });
+        });
+    });
 });

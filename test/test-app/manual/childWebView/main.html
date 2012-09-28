@@ -1,0 +1,49 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN">
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WebWorks Smoke Test for BB10</title>
+</head>
+<body>
+    <h1>Test Child Web Views</h1>
+    <p>
+        A new web view should be created when a link with target=_blank is clicked,
+        or when window.open() is called in response to a user's click event.
+    </p>
+
+    <h2>1. target=_blank</h2>
+    <h3><a href="child.html" target="_blank">Click here</a></h3>
+    <p>
+        The above link has a <em>target=_blank</em> attribute and should load
+        a new page in a separate web view when clicked.
+    </p>
+
+    <h2>2. window.open()</h2>
+    <h3><a href="child.html" id="launchChildWebview">Click here</a></h3>
+    <p>
+        2a. The above link has a click handler which calls window.open() and should load
+        a new page in a separate web view when clicked.
+    </p>
+    <p>
+        2b. After closing the window, you should see a reference to the opened window
+        inside the following grey box:
+    </p>
+    <div style="background-color: grey; padding: .25em 0;" id="childWebviewResults">&nbsp;</div>
+    <p>
+        <strong>Note!</strong> window.open() does not work without an actual user click
+        due to popup blocking.
+    </p>
+    <script>
+    (function() {
+        var link = document.getElementById('launchChildWebview'),
+            childWindow,
+            results = document.getElementById('childWebviewResults');
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            childWindow = window.open(link.href);
+            results.textContent = childWindow ? 'Success! ' + childWindow.toString() : 'Failed to get child window reference';
+        });
+    }());
+    </script>
+</body>
+</html>
