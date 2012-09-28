@@ -20,7 +20,7 @@
 #include "pim_message_js.hpp"
 #include "pim_message_ndk.hpp"
 
-PimMessage::PimMessage(const std::string& id) : m_id(id)
+PimMessage::PimMessage(const std::string& id) : m_id(id), m_thread(0);
 {
 }
 
