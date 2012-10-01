@@ -14,7 +14,8 @@
 * limitations under the License.
 */
 
-var messages;
+var messages,
+    _event = require("../../lib/event");
 
 ///////////////////////////////////////////////////////////////////
 // JavaScript wrapper for JNEXT plugin
@@ -55,8 +56,13 @@ JNEXT.PimMessages = function ()
 
     self.getAccounts = function () {
         var value = JNEXT.invoke(self.m_id, "getAccounts");
-        return JSON.parse(value);
-    }
+        return JSON.parse(value).accounts;
+    };
+
+    self.send = function (args) {
+        JNEXT.invoke(self.m_id, "send " + JSON.stringify(args));
+        return "";
+    };
 
     self.m_id = "";
 
@@ -67,4 +73,4 @@ messages = new JNEXT.PimMessages();
 
 module.exports = {
     messages : messages
-}
+};

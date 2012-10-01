@@ -31,14 +31,14 @@ MessageContact = function (args) {
 MessageContact.getContacts = function (args) {
     var contacts = [];
 
-    if(!args) {
+    if (!args) {
         return null;
     }
 
     args.forEach(function (contact) {
         contacts.push(new MessageContact(contact));
     });
-}
+};
 
 MessageContact.prototype.Type = {
     'To': 0,
@@ -46,6 +46,6 @@ MessageContact.prototype.Type = {
     'Bcc': 2,
     'From': 3,
     'ReplyTo': 4
-}
+};
 
 module.exports = MessageContact;

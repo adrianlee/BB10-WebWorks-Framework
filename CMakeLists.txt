@@ -30,6 +30,7 @@ else ()
     endif ()
 
     if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "armle-v7")
+        add_subdirectory(ext/pim.messages/native)
         add_subdirectory(ext/pim.contacts/native)
         add_subdirectory(ext/bbm.platform/native)
         add_subdirectory(ext/connection/native)

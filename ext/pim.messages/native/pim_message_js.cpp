@@ -19,7 +19,7 @@
 #include <string>
 #include "pim_message_js.hpp"
 
-PimMessage::PimMessage(const std::string& id) : m_id(id), m_thread(0);
+PimMessage::PimMessage(const std::string& id) : m_id(id), m_thread(0)
 {
     messageController = new webworks::PimMessageNdk();
 }
@@ -41,13 +41,13 @@ JSExt* onCreateObject(const std::string& className, const std::string& id)
     return new PimMessage(id);
 }
 
-bool PimContacts::CanDelete()
+bool PimMessage::CanDelete()
 {
     return true;
 }
 
 // Notifies JavaScript of an event
-void PimMessage::NotifyEvent(const std::string& eventId, const std::string& event)
+void PimMessage::NotifyEvent(const std::string& event)
 {
     std::string eventString = m_id;
     eventString.append(" ");
@@ -64,14 +64,14 @@ std::string PimMessage::InvokeMethod(const std::string& command)
 
     Json::Reader reader;
     Json::Value *obj = new Json::Value;
-    bool parse = reader.parse(jsonObj, *obj);
+    bool parse = reader.parse(jsonObject, *obj);
 
     if (!parse) {
         fprintf(stderr, "%s", "error parsing\n");
         return "Cannot parse JSON object";
     }
 
-    if (strCommand = "getAccounts") {
+    if (strCommand == "getAccounts") {
         Json::Value result = messageController->getAccounts();
         Json::FastWriter writer;
         std::string jsonString = writer.write(result);

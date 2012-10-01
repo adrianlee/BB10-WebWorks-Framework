@@ -16,7 +16,7 @@
 var Messsage,
     MessageError = require("./MessageError"),
     MessageBody = require("./MessageBody"),
-    MessageContact = require("./MessageContact");
+    MessageContact = require("./MessageContact"),
     MessageAttachment = require("./MessageAttachment");
 
 Messsage = function (args) {
@@ -52,12 +52,12 @@ Messsage.prototype.MessageStatus = {
     'deffered': 4,
     'broadcast': 5,
     'now': 6
-}
+};
 
 Messsage.prototype.Priority = {
     'Low': 0,
     'Normal': 1,
     'Hight': 2,
-}
+};
 
 module.exports = Messsage;

@@ -40,16 +40,22 @@ namespace webworks {
         //Grab list of accounts
         QList<Account> accountList = AccountService().accounts(Service::Messages);
         
-        //Create Json object containing array of account
-        Json::Value = accountArray;
+        //Create Json object containing array of accounts
+        Json::Value accountArray;
         for (int i = 0; i < accountList.size(); i++)
         {
             Account c_account = accountList[i];
 
             //Json representation of account
             Json::Value accountJson;
-            accountJson["id"] = Json::Value(c_account.id());
-            accountJson["displayName"] = Json::Value(c_account.displayName());
+            
+            std::string accountIdString;
+            std::stringstream ss;
+            ss << c_account.id();
+            accountIdString = ss.str();
+            
+            accountJson["id"] = Json::Value(accountIdString);
+            accountJson["displayName"] = Json::Value(c_account.displayName().toStdString());
 
             accountArray.append(accountJson);
         }

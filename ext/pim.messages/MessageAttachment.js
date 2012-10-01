@@ -33,13 +33,13 @@ MessageAttachment = function (args) {
 MessageAttachment.getAttachments = function (args) {
     var attachments = [];
 
-    if(!args) {
+    if (!args) {
         return null;
     }
 
     args.forEach(function (attachment) {
         attachments.push(new MessageAttachment(attachment));
     });
-}
+};
 
 module.exports = MessageAttachment;

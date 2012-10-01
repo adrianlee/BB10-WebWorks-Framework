@@ -28,6 +28,6 @@ MessageBody = function (args) {
 MessageBody.prototype.Type = {
     'PlainTest': 0,
     'Html': 1
-}
+};
 
 module.exports = MessageBody;
