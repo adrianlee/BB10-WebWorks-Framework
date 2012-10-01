@@ -13,17 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var MesssageAccount,
+var MessageAttachment,
     MessageError = require("./MessageError");
 
-MesssageAccount = function (args) {
+MessageAttachment = function (args) {
     if (!args) {
         throw new MessageError(MessageError.INVALID_ARGUMENT_ERROR);
     }
 
-    this.accountId = args.accountId;
-    this.isEnterprise = args.isInterprise;
-    this.isSocial = args.isSocial;
+    this.attachmentId = args.attachmentId;
+    this.mimeType = args.mimeType;
+    this.name = args.name;
+    this.path = args.path;
+    this.data = args.data;
+    this.size = args.size;
+    this.contentId = args.contentId;
 };
 
-module.exports = MesssageAccount;
+MessageAttachment.getAttachments = function (args) {
+    var attachments = [];
+
+    if(!args) {
+        return null;
+    }
+
+    args.forEach(function (attachment) {
+        attachments.push(new MessageAttachment(attachment));
+    });
+}
+
+module.exports = MessageAttachment;

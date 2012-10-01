@@ -13,17 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var MesssageAccount,
+var MessageContact,
     MessageError = require("./MessageError");
 
-MesssageAccount = function (args) {
+MessageContact = function (args) {
     if (!args) {
         throw new MessageError(MessageError.INVALID_ARGUMENT_ERROR);
     }
 
-    this.accountId = args.accountId;
-    this.isEnterprise = args.isInterprise;
-    this.isSocial = args.isSocial;
+    this.contactId = args.contactId;
+    this.type = args.type;
+    this.name = args.name;
+    this.address = args.address;
+    this.displayableName = args.displayableName;
 };
 
-module.exports = MesssageAccount;
+MessageContact.getContacts = function (args) {
+    var contacts = [];
+
+    if(!args) {
+        return null;
+    }
+
+    args.forEach(function (contact) {
+        contacts.push(new MessageContact(contact));
+    });
+}
+
+MessageContact.prototype.Type = {
+    'To': 0,
+    'Cc': 1,
+    'Bcc': 2,
+    'From': 3,
+    'ReplyTo': 4
+}
+
+module.exports = MessageContact;

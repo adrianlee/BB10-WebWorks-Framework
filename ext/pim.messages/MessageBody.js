@@ -13,17 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var MesssageAccount,
+var MessageBody,
     MessageError = require("./MessageError");
 
-MesssageAccount = function (args) {
+MessageBody = function (args) {
     if (!args) {
         throw new MessageError(MessageError.INVALID_ARGUMENT_ERROR);
     }
 
-    this.accountId = args.accountId;
-    this.isEnterprise = args.isInterprise;
-    this.isSocial = args.isSocial;
+    this.type = args.type;
+    this.data = args.data;
 };
 
-module.exports = MesssageAccount;
+MessageBody.prototype.Type = {
+    'PlainTest': 0,
+    'Html': 1
+}
+
+module.exports = MessageBody;
