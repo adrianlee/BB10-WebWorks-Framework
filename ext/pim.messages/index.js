@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var pimMessages,
+var pimMessages = require("./PimMessageJNEXT").messages,
     _event = require("../../lib/event"),
     _utils = require("../../lib/utils"),
     _config = require("../../lib/config"),
@@ -97,46 +97,3 @@ module.exports = {
     },
 };
 
-///////////////////////////////////////////////////////////////////
-// JavaScript wrapper for JNEXT plugin
-///////////////////////////////////////////////////////////////////
-
-JNEXT.pimMessages = function ()
-{
-    var self = this;
-
-    self.getId = function () {
-        return self.m_id;
-    };
-
-    self.init = function () {
-        if (!JNEXT.require("pimMessages")) {
-            return false;
-        }
-
-        self.m_id = JNEXT.createObject("pimMessages.pimMessages");
-
-        if (self.m_id === "") {
-            return false;
-        }
-
-        JNEXT.registerEvents(self);
-    };
-
-    self.onEvent = function (strData) {
-        var arData = strData.split(" "),
-            strEventDesc = arData[0],
-            args = {};
-
-        if (strEventDesc === "result") {
-            args.result = escape(strData.split(" ").slice(2).join(" "));
-            _event.trigger(arData[1], args);
-        }
-    };
-
-    self.m_id = "";
-
-    self.init();
-};
-
-pimMessages = new JNEXT.pimMessages();
