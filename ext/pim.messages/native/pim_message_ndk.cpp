@@ -48,8 +48,8 @@ namespace webworks {
 
             //Json representation of account
             Json::Value accountJson;
-            accountJson["id"] = Json::Value(c_account.id);
-            accountJson["displayName"] = Json::Value(c_account.displayName);
+            accountJson["id"] = Json::Value(c_account.id());
+            accountJson["displayName"] = Json::Value(c_account.displayName());
 
             accountArray.append(accountJson);
         }
