@@ -20,6 +20,7 @@
 #include <pthread.h>
 #include "../common/plugin.h"
 #include <string>
+#include "pim_message_ndk.js"
 
 class PimMessage : public JSExt
 {
@@ -33,6 +34,7 @@ public:
 private:
     std::string m_id;
     pthread_t m_thread;
+    webworks::PimMessageNdk* messageController;
 }
 
 #endif // PIM_MESSAGE_JS_H_ 

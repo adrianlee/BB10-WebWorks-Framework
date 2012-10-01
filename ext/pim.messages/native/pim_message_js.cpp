@@ -18,10 +18,10 @@
 #include <json/writer.h>
 #include <string>
 #include "pim_message_js.hpp"
-#include "pim_message_ndk.hpp"
 
 PimMessage::PimMessage(const std::string& id) : m_id(id), m_thread(0);
 {
+    messageController = new webworks::PimMessageNdk();
 }
 
 char* onGetObjList()
@@ -53,4 +53,27 @@ void PimMessage::NotifyEvent(const std::string& eventId, const std::string& even
     eventString.append(" ");
     eventString.append(event);
     SendPluginEvent(eventString.c_str(), m_pContext);
+}
+
+std::string PimMessage::InvokeMethod(const std::string& command) 
+{
+    int index = command.find_first_of(" ");
+
+    string strCommand = command.substr(0, index);
+    string jsonObject = command.substr(index + 1, command.length());
+
+    Json::Reader reader;
+    Json::Value *obj = new Json::Value;
+    bool parse = reader.parse(jsonObj, *obj);
+
+    if (!parse) {
+        fprintf(stderr, "%s", "error parsing\n");
+        return "Cannot parse JSON object";
+    }
+
+    if (strCommand = "getAccounts") {
+        messageController->getAccounts();
+    }
+
+    return "";
 }
