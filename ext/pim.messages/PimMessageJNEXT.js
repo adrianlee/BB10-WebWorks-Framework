@@ -54,7 +54,8 @@ JNEXT.PimMessages = function ()
     };
 
     self.getAccounts = function () {
-        JNEXT.invoke(self.m_id, "getAccounts");
+        var value = JNEXT.invoke(self.m_id, "getAccounts");
+        return JSON.parse(value);
     }
 
     self.m_id = "";

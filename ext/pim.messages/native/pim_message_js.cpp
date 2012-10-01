@@ -72,7 +72,10 @@ std::string PimMessage::InvokeMethod(const std::string& command)
     }
 
     if (strCommand = "getAccounts") {
-        messageController->getAccounts();
+        Json::Value result = messageController->getAccounts();
+        Json::FastWriter writer;
+        std::string jsonString = writer.write(result);
+        return jsonString;
     }
 
     return "";
