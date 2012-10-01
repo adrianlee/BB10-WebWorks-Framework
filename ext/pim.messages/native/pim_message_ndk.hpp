@@ -37,6 +37,7 @@ public:
 
     // PIM Messages related functions
     Json::Value getAccounts();
+    void send(const Json::Value& argsObj);
 
 private:
 

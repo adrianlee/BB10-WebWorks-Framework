@@ -65,6 +65,16 @@ namespace webworks {
         return returnObj;
     }
 
+    void PimMessageNdk::send(const Json::Value& argsObj) {
+        bb::pim::message::MessageBuilder *builder;
 
+        builder->subject = argsObj["subject"];
+        builder->addRecepient(argsObj["recepient"]);
+        builder->body(MessageBody::PlainText, argsObj["body"].toUtf8());
+        
+        bb::pim::message::MessageService messageService;
+        messageService->send(-1, *builder);
+    }
+    
 
 } //namespace webworks
