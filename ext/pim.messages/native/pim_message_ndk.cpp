@@ -41,15 +41,17 @@ namespace webworks {
         QList<Account> accountList = AccountService().accounts(Service::Messages);
         
         //Create Json object containing array of account
-        Json::Value = accountArray;
+        Json::Value accountArray;
         for (int i = 0; i < accountList.size(); i++)
         {
             Account c_account = accountList[i];
 
             //Json representation of account
             Json::Value accountJson;
-            accountJson["id"] = Json::Value(c_account.id());
-            accountJson["displayName"] = Json::Value(c_account.displayName());
+            //accountJson["id"] = Json::Value(c_account.id());
+            //accountJson["displayName"] = Json::Value(c_account.displayName());
+            accountJson["id"] = Json::Value("test");
+            accountJson["displayName"] = Json::Value("another test");
 
             accountArray.append(accountJson);
         }

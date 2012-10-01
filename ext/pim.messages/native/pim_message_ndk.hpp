@@ -18,13 +18,16 @@
 #define PIM_MESSAGES_NDK_H_
 
 #include <bb/pim/account/Account>
+#include <bb/pim/account/AccountService>
 #include <bb/pim/message/MessageService>
 #include <string>
 
+class PimMessages;
+
 namespace webworks {
 
-namespace bb::pim::account;
-namespace bb::pim::message;
+using namespace bb::pim::account;
+using namespace bb::pim::message;
 
 class PimMessageNdk {
 public:

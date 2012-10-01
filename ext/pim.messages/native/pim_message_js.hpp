@@ -17,10 +17,11 @@
 #ifndef PIM_MESSAGE_JS_H_
 #define PIM_MESSAGE_JS_H_
 
+#include <json/value.h>
 #include <pthread.h>
-#include "../common/plugin.h"
 #include <string>
-#include "pim_message_ndk.js"
+#include "pim_message_ndk.hpp"
+#include "../common/plugin.h"
 
 class PimMessage : public JSExt
 {
@@ -35,6 +36,6 @@ private:
     std::string m_id;
     pthread_t m_thread;
     webworks::PimMessageNdk* messageController;
-}
+};
 
 #endif // PIM_MESSAGE_JS_H_ 
