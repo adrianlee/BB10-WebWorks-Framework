@@ -18,6 +18,7 @@ var MessageError = function (code) {
 };
 
 Object.defineProperty(MessageError, "UNKNOWN_ERROR", { "value": 0 });
+Object.defineProperty(MessageError, "INVALID_ARGUMENT_ERROR", { "value": 1 });
 Object.defineProperty(MessageError, "PERMISSION_DENIED_ERROR", { "value": 20 });
 
 module.exports = MessageError;

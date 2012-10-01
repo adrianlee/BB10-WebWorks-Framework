@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 var pimMessages,
     _event = require("../../lib/event"),
     _utils = require("../../lib/utils"),
@@ -36,7 +35,66 @@ function checkPermission(success, eventId) {
     return true;
 }
 
+function getParsedArgs(args) {
+    var parsedArgs = {},
+        key;
+
+    for (key in args) {
+        if (args.hasOwnProperty(key)) {
+            parsedArgs[key] = JSON.parse(decodeURIComponent(args[key]));
+        }
+    }
+
+    return parsedArgs;
+}
+
 module.exports = {
+    create: function (success, fail, args) {
+        var parsedArgs = getParsedArgs(args);
+
+        if (!_utils.hasPermission(_config, "access_pimdomain_messages")) {
+            success(null);
+            return;
+        }
+
+        success(pimMessages.create(parsedArgs));
+    },
+
+    geAccounts: function (success, fail, args) {
+        if (!_utils.hasPermission(_config, "access_pimdomain_messages")) {
+            success(null);
+            return;
+        }
+
+        success(pimMessages.getAccounts());
+    },
+
+    getDefaultAccount: function (success, fail, args) {
+        if (!_utils.hasPermission(_config, "access_pimdomain_messages")) {
+            success(null);
+            return;
+        }
+
+        success(pimMessages.getDefaultAccount());
+    },
+
+    find: function (success, fail, args) {
+        var findOptions = {},
+            key;
+
+        for (key in args) {
+            if (args.hasOwnProperty(key)) {
+                findOptions[key] = JSON.parse(decodeURIComponent(args[key]));
+            }
+        }
+
+        if (!checkPermission(success, findOptions["_eventId"])) {
+            return;
+        }
+
+        pimMessages.find(findOptions);
+        success();
+    },
 };
 
 ///////////////////////////////////////////////////////////////////
