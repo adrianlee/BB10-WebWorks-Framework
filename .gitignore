@@ -2,6 +2,7 @@ node_modules/
 build-*simulator/
 build-*device/
 .project
+.externalToolBuilders
 .settings
 *.DS_Store
 tags

@@ -77,7 +77,7 @@ private:
     QVariant getFromMap(QMap<QString, QVariant> map, QStringList keys);
     std::string getFolderKeyStr(bbpim::AccountId accountId, bbpim::FolderId folderId);
     bool getSearchParams(bbpim::EventSearchParameters& searchParams, const Json::Value& args);
-    void lookupCalendarFolderByFolderKey(bbpim::AccountId accountId, bbpim::FolderId folderId);
+    Json::Value lookupCalendarFolderByFolderKey(bbpim::AccountId accountId, bbpim::FolderId folderId);
     bool isDefaultCalendarFolder(const bbpim::CalendarFolder& folder);
     Json::Value getCalendarFolderJson(const bbpim::CalendarFolder& folder, bool skipDefaultCheck = false);
 
@@ -86,60 +86,6 @@ private:
 
     std::map<std::string, bbpim::CalendarFolder> _allFoldersMap;
     std::map<std::string, bbpim::CalendarFolder> _foldersMap;
-/*
-    // Helper functions for Find
-    Json::Value assembleSearchResults(const QSet<bbpim::ContactId>& results, const Json::Value& contactFields, int limit);
-    Json::Value populateContact(bbpim::Contact& contact, const Json::Value& contactFields);
-    void populateField(const bbpim::Contact& contact, bbpim::AttributeKind::Type kind, Json::Value& contactItem, bool isContactField, bool isArray);
-    void populateDisplayNameNickName(const bbpim::Contact& contact, Json::Value& contactItem, const std::string& field);
-    void populateOrganizations(const bbpim::Contact& contact, Json::Value& contactOrgs);
-    void populateAddresses(const bbpim::Contact& contact, Json::Value& contactAddrs);
-    void populatePhotos(const bbpim::Contact& contact, Json::Value& contactPhotos);
-
-    static QSet<bbpim::ContactId> singleFieldSearch(const Json::Value& searchFieldsJson, const Json::Value& contactFields, bool favorite);
-    static QString getSortFieldValue(const bbpim::SortColumn::Type sortField, const bbpim::Contact& contact);
-    static QList<bbpim::SearchField::Type> getSearchFields(const Json::Value& searchFieldsJson);
-    static void getSortSpecs(const Json::Value& sort);
-    static QSet<bbpim::ContactId> getPartialSearchResults(const Json::Value& filter, const Json::Value& contactFields, const bool favorite);
-    static bool lessThan(const bbpim::Contact& c1, const bbpim::Contact& c2);
-
-    // Helper functions for Save
-    void addAttributeKind(bbpim::ContactBuilder& contactBuilder, const Json::Value& jsonObj, const std::string& field);
-    void addPostalAddress(bbpim::ContactBuilder& contactBuilder, const Json::Value& addressObj);
-    void addPhoto(bbpim::ContactBuilder& contactBuilder, const Json::Value& photoObj);
-
-    void syncAttributeKind(bbpim::Contact& contact, const Json::Value& jsonObj, const std::string& field);
-    void syncConvertedList(bbpim::ContactBuilder& contactBuilder, bbpim::AttributeKind::Type kind, QList<bbpim::ContactAttribute> savedList, const QList<SubkindValuePair>& convertedList);
-    void syncConvertedGroupedList(bbpim::ContactBuilder& contactBuilder, bbpim::AttributeKind::Type kind, QList<bbpim::ContactAttribute> savedList, QList<SubkindValuePair> convertedList, const std::string& groupKey);
-    void syncAttributeGroup(bbpim::ContactBuilder& contactBuilder, bbpim::AttributeKind::Type kind, QList<QList<bbpim::ContactAttribute> > savedList, const Json::Value& jsonObj);
-    void syncAttributeDate(bbpim::ContactBuilder& contactBuilder, QList<bbpim::ContactAttribute>& savedList, const bbpim::AttributeSubKind::Type subkind, const std::string& value);
-    void syncPostalAddresses(bbpim::ContactBuilder& contactBuilder, QList<bbpim::ContactPostalAddress>& savedList, const Json::Value& jsonObj);
-    void syncPhotos(bbpim::ContactBuilder& contactBuilder, QList<bbpim::ContactPhoto>& savedList, const Json::Value& jsonObj);
-
-    void addConvertedList(bbpim::ContactBuilder& contactBuilder, const bbpim::AttributeKind::Type kind, const QList<SubkindValuePair>& convertedList);
-    void addConvertedGroupedList(bbpim::ContactBuilder& contactBuilder, const bbpim::AttributeKind::Type kind, const QList<SubkindValuePair>& convertedList, const std::string& groupKey);
-    void addAttributeDate(bbpim::ContactBuilder& contactBuilder, const bbpim::AttributeKind::Type kind, const bbpim::AttributeSubKind::Type subkind, const std::string& value);
-//    void addAttribute(bbpim::ContactBuilder& contactBuilder, const bbpim::AttributeKind::Type kind, const bbpim::AttributeSubKind::Type subkind, const std::string& value);
-//    void addAttributeToGroup(bbpim::ContactBuilder& contactBuilder, const bbpim::AttributeKind::Type kind, const bbpim::AttributeSubKind::Type subkind, const std::string& value, const std::string& groupKey);
-
-    QList<SubkindValuePair> convertGroupedAttributes(const Json::Value& fieldsObj);
-    QList<SubkindValuePair> convertFieldAttributes(const Json::Value& fieldArray);
-    QList<SubkindValuePair> convertStringArray(const Json::Value& stringArray, bbpim::AttributeSubKind::Type subkind);
-
-    // Mappings between JSON strings and attribute kinds/subkinds
-    static void createAttributeKindMap();
-    static void createAttributeSubKindMap();
-    static void createKindAttributeMap();
-    static void createSubKindAttributeMap();
-
-    static StringToKindMap _attributeKindMap;
-    static StringToSubKindMap _attributeSubKindMap;
-    static KindToStringMap _kindAttributeMap;
-    static SubKindToStringMap _subKindAttributeMap;
-    static QList<bbpim::SortSpecifier> _sortSpecs;
-
-    static std::map<bbpim::ContactId, bbpim::Contact> _contactSearchMap;
-*/
 };
 
 } // namespace webworks

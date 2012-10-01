@@ -179,6 +179,12 @@ _self.findEvents = function (findOptions, onFindSuccess, onFindError) {
     });
 };
 
+_self.findSingleEvent = function (findOptions, onFindSuccess, onFindError) {
+    //TODO: validate findOptions
+    
+    window.webworks.execAsync(_ID, "findSingleEvent", findOptions);
+};
+
 _self.CalendarEvent = CalendarEvent;
 _self.CalendarRepeatRule = CalendarRepeatRule;
 _self.CalendarError = CalendarError;

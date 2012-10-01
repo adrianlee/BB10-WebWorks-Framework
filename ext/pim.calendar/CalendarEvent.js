@@ -21,6 +21,15 @@ var CalendarEvent,
     CalendarRepeatRule = require("./CalendarRepeatRule"),
     CalendarFolder = require("./CalendarFolder");
 
+function defineConstant (object, name, value) {
+    Object.defineProperty(object, name, {
+        value: value,
+        writable: false,
+        enumerable: true,
+        configurable: true
+    });
+}
+
 /**
  * Contains information about a single calendar event.
  * @constructor
