@@ -19,6 +19,7 @@
 #include <string>
 #include <sstream>
 #include <QList>
+#include <QtCore>
 #include "pim_message_ndk.hpp"
 
 namespace webworks {
@@ -37,13 +38,23 @@ namespace webworks {
     
     Json::Value PimMessageNdk::getAccounts()
     {
+        fprintf(stderr, "Inside getAccounts of pim_message_ndk.cpp \n");
+    
+        qDebug() << "Before calling AccountService";
+
         //Grab list of accounts
         QList<Account> accountList = AccountService().accounts(Service::Messages);
+        
+        qDebug() << accountList;
+
+        qDebug() << "before the for loop";
         
         //Create Json object containing array of accounts
         Json::Value accountArray;
         for (int i = 0; i < accountList.size(); i++)
         {
+            qDebug() << "inside the for loop";
+
             Account c_account = accountList[i];
 
             //Json representation of account
@@ -53,12 +64,15 @@ namespace webworks {
             std::stringstream ss;
             ss << c_account.id();
             accountIdString = ss.str();
-            
+
+            fprintf(stderr, "%s\n",accountIdString.c_str());
+
             accountJson["id"] = Json::Value(accountIdString);
             accountJson["displayName"] = Json::Value(c_account.displayName().toStdString());
 
             accountArray.append(accountJson);
         }
+        qDebug() << "after the for loop";
 
         Json::Value returnObj;
         returnObj["accounts"] = accountArray;
@@ -70,17 +84,16 @@ namespace webworks {
 
         QString *subjectString = new QString(argsObj["subject"].asCString());
         builder->subject(*subjectString);
-        
+
         QString *recipientString = new QString(argsObj["recipient"].asCString());
         MessageContact recipient = MessageContact(-1, MessageContact::To, QString(), *recipientString);
         builder->addRecipient(recipient);
-        
+
         QString *bodyString = new QString(argsObj["body"].asCString());
         builder->body(MessageBody::PlainText, bodyString->toUtf8());
-        
+
         bb::pim::message::MessageService messageService;
         messageService.send(-1, *builder);
     }
-    
 
 } //namespace webworks
