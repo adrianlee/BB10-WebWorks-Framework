@@ -34,7 +34,7 @@ JNEXT.pimMessage = function ()
             return false;
         }
 
-        self.m_id = JNEXT.createObject("pimMessage.pimMessage");
+        self.m_id = JNEXT.createObject("pimMessage.PimMessage");
 
         if (self.m_id === "") {
             return false;
