@@ -52,8 +52,8 @@ MessageService.create = function (args) {
     return new Message(message);
 };
 
-MessageService.geAccounts = function (args) {
-    var obj = window.webworks.execSync(_ID, "geAccounts"),
+MessageService.getAccounts = function (args) {
+    var obj = window.webworks.execSync(_ID, "getAccounts"),
         accounts = [];
 
     obj.forEach(function (account) {

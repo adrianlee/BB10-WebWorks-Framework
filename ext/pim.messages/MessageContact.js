@@ -40,6 +40,16 @@ MessageContact.getContacts = function (args) {
     });
 };
 
+MessageContact.prototype.toJSON = function () {
+    return {
+        'contactId': this.contactId,
+        'type': this.type,
+        'name': this.name,
+        'address': this.address,
+        'displayableName': this.displayableName
+    };
+};
+
 MessageContact.prototype.Type = {
     'To': 0,
     'Cc': 1,

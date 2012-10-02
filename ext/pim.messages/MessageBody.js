@@ -30,4 +30,11 @@ MessageBody.prototype.Type = {
     'Html': 1
 };
 
+MessageBody.prototype.toJSON = function () {
+    return {
+        'type': this.type,
+        'data': this.data
+    };
+};
+
 module.exports = MessageBody;

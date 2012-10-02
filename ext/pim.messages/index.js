@@ -50,17 +50,18 @@ function getParsedArgs(args) {
 
 module.exports = {
     create: function (success, fail, args) {
-        var parsedArgs = getParsedArgs(args);
+        var parsedArgs;
 
         if (!_utils.hasPermission(_config, "access_pimdomain_messages")) {
             success(null);
             return;
         }
 
+        parsedArgs = getParsedArgs(args);
         success(pimMessages.create(parsedArgs));
     },
 
-    geAccounts: function (success, fail, args) {
+    getAccounts: function (success, fail, args) {
         if (!_utils.hasPermission(_config, "access_pimdomain_messages")) {
             success(null);
             return;
@@ -76,6 +77,22 @@ module.exports = {
         }
 
         success(pimMessages.getDefaultAccount());
+    },
+
+    save: function (success, fail, args) {
+        //TODO To be implemented
+    },
+
+    send: function (success, fail, args) {
+        var parsedArgs;
+
+        if (!_utils.hasPermission(_config, "access_pimdomain_messages")) {
+            success(null);
+            return;
+        }
+
+        parsedArgs = getParsedArgs(args);
+        success(pimMessages.send(parsedArgs));
     },
 
     find: function (success, fail, args) {

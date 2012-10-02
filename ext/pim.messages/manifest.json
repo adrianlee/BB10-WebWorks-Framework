@@ -1,5 +1,5 @@
 {
     "global": false,
-    "namespace": "blackberry.pim.messaging",
+    "namespace": "blackberry.pim.message",
     "dependencies": []
 }

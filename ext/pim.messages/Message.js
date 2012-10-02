@@ -13,35 +13,105 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var Messsage,
+var _ID = require("./manifest.json").namespace,
+    _utils = require("./../../lib/utils"),
+    Messsage,
     MessageError = require("./MessageError"),
     MessageBody = require("./MessageBody"),
     MessageContact = require("./MessageContact"),
     MessageAttachment = require("./MessageAttachment");
 
 Messsage = function (args) {
-    if (!args) {
+    var messageId = args.messageId,
+        folderId = args.folderId,
+        accountId = args.accountId,
+        conversationId = args.conversationId,
+        status = args.status,
+        sender = new MessageContact(args.sender),
+        recipients = MessageContact.getContacts(args.recipients),
+        subject = args.subject,
+        body = new MessageBody(args.body),
+        attachments = MessageAttachment.getAttachments(args.attachments),
+        attachementCount = args.attachementCount;
+
+    return {
+        'mimeType': args.mimeType,
+        'inbound': args.inbound,
+        'priority': args.priority,
+        'followUp': args.followUp,
+        'status': status,
+        'deviceTimestamp': args.deviceTimestamp,
+        'serverTimestamp': args.serverTimestamp,
+        'sender': sender,
+        'recipients': recipients,
+        'subject': subject,
+        'body': body.toJSON(),
+        'attachments': attachments,
+        'attachementCount': attachementCount,
+        'save': function () {
+        }, 
+        'send': function (onSuccess, onError, args) {
+/*            
+            function messageBuilder () {
+                
+                var message = {
+                   'eventId': _utils.guid(),
+                   'sender': sender.toJSON(),
+                   'recipients': recipients.toJSON(),
+                   'priority': priority,
+                   'followUp': followUp,
+                   'status': status,
+                   'subject': subject,
+                   'body': body.toJSON()
+                }
+                
+                return message;
+            }
+ */           
+            
+            //var message = messageBuilder(),
+            var message = {
+                'eventId': _utils.guid(),
+                'subject': "New email",
+                'recipient': "sgolod@rim.com",
+                'body': "You got it!"
+            },
+                callback;
+
+
+            callback = function (args) {
+                var result = JSON.parse(unescape(args.result)),
+                    newContact,
+                    errorObj;
+
+                if (result.code !== -1) {
+                    if (onSuccess) {
+                        onSuccess();
+                    }
+                } else {
+                    if (onError && typeof(onError) === "function") {
+                        onError();
+                    }
+                }
+            };
+
+            window.webworks.event.once(_ID, message.eventId, callback);
+            return window.webworks.execAsync(_ID, "send", message);
+        }
+    };
+};
+
+
+Messsage.prototype.getAttachment = function (index) {
+    try {
+        return this.attachments[index];
+    } catch (e) {
         throw new MessageError(MessageError.INVALID_ARGUMENT_ERROR);
     }
+};
 
-    this.messageId = args.messageId;
-    this.folderId = args.folderId;
-    this.accountId = args.accountId;
-    this.conversationId = args.conversationId;
-    this.mimeType = args.mimeType;
-    this.inbound = args.inbound;
-    this.priority = args.priority;
-    this.deviceTimestamp = args.deviceTimestamp;
-    this.serverTimestamp = args.serverTimestamp;
-    this.sender = new MessageContact(args.sender);
-    this.recipients = MessageContact.getContacts(args.recipients);
-    this.subject = args.subject;
-    this.body = new MessageBody(args.body);
-    this.attachments = MessageAttachment.getAttachments(args.attachments);
-    this.recipientCount = args.recipientCount;
-    this.attachementCount = args.attachementCount;
-    this.followUp = args.followUp;
-    this.status = args.status;
+Messsage.prototype.addAttachment = function (attachment) {
+    this.attachments.push(new MessageAttachment(attachment));
 };
 
 Messsage.prototype.MessageStatus = {
