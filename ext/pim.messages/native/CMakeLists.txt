@@ -18,8 +18,8 @@ include_directories(${CMAKE_SOURCE_DIR})
 include_directories(${CMAKE_SOURCE_DIR}/dependencies/jnext_1_0_8_3/jncore/jnext-extensions/common)
 include_directories(${CMAKE_SOURCE_DIR}/dependencies/JsonCpp/jsoncpp-src-0.5.0/include)
 
-add_library(pim_message MODULE ${pimMessage_srcs})
-target_link_libraries(pim_message bbpim)
+add_library(pimMessage MODULE ${pimMessage_srcs})
+target_link_libraries(pimMessage bbpim)
 
-set_target_properties(pim_message PROPERTIES PREFIX "")
+set_target_properties(pimMessage PROPERTIES PREFIX "")
 
