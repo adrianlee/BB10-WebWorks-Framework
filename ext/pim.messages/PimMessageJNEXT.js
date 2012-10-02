@@ -21,7 +21,7 @@ var messages,
 // JavaScript wrapper for JNEXT plugin
 ///////////////////////////////////////////////////////////////////
 
-JNEXT.PimMessages = function ()
+JNEXT.pimMessage = function ()
 {
     var self = this;
 
@@ -30,11 +30,11 @@ JNEXT.PimMessages = function ()
     };
 
     self.init = function () {
-        if (!JNEXT.require("PimMessages")) {
+        if (!JNEXT.require("pimMessage")) {
             return false;
         }
 
-        self.m_id = JNEXT.createObject("PimMessages.PimMessages");
+        self.m_id = JNEXT.createObject("pimMessage.pimMessage");
 
         if (self.m_id === "") {
             return false;
@@ -69,7 +69,7 @@ JNEXT.PimMessages = function ()
     self.init();
 };
 
-messages = new JNEXT.PimMessages();
+messages = new JNEXT.pimMessage();
 
 module.exports = {
     messages : messages
