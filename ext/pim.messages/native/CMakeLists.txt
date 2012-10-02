@@ -19,7 +19,7 @@ include_directories(${CMAKE_SOURCE_DIR}/dependencies/jnext_1_0_8_3/jncore/jnext-
 include_directories(${CMAKE_SOURCE_DIR}/dependencies/JsonCpp/jsoncpp-src-0.5.0/include)
 
 add_library(pimMessage MODULE ${pimMessage_srcs})
-target_link_libraries(pimMessage bbpim)
+target_link_libraries(pimMessage bbpim QtCore)
 
 set_target_properties(pimMessage PROPERTIES PREFIX "")
 
