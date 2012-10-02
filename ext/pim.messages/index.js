@@ -17,24 +17,24 @@ var pimMessages = require("./PimMessageJNEXT").messages,
     _event = require("../../lib/event"),
     _utils = require("../../lib/utils"),
     _config = require("../../lib/config"),
-    MessagesError = require("./MessagesError");
+    MessageError = require("./MessageError");
 
 
-function checkPermission(success, eventId) {
-    if (!_utils.hasPermission(_config, "access_pimdomain_messages")) {
-        _event.trigger(eventId, {
-            "result": escape(JSON.stringify({
-                "_success": false,
-                "code": MessagesError.PERMISSION_DENIED_ERROR
-            }))
-        });
-        success();
-        return false;
-    }
-
-    return true;
-}
-
+// function checkPermission(success, eventId) {
+    // if (!_utils.hasPermission(_config, "access_pimdomain_messages")) {
+        // _event.trigger(eventId, {
+            // "result": escape(JSON.stringify({
+                // "_success": false,
+                // "code": MessageError.PERMISSION_DENIED_ERROR
+            // }))
+        // });
+        // success();
+        // return false;
+    // }
+// 
+    // return true;
+// }
+// 
 function getParsedArgs(args) {
     var parsedArgs = {},
         key;
@@ -62,55 +62,73 @@ module.exports = {
     },
 
     getAccounts: function (success, fail, args) {
-        if (!_utils.hasPermission(_config, "access_pimdomain_messages")) {
-            success(null);
-            return;
-        }
+        var result;
+        console.log("Getting Accounts...");
 
-        success(pimMessages.getAccounts());
+        // if (!_utils.hasPermission(_config, "access_pimdomain_messages")) {
+            // success(null);
+            // return;
+        // }
+
+result = pimMessages.getAccounts();
+console.log("Result");
+console.log(result);
+        success(result);
     },
 
-    getDefaultAccount: function (success, fail, args) {
-        if (!_utils.hasPermission(_config, "access_pimdomain_messages")) {
-            success(null);
-            return;
-        }
-
-        success(pimMessages.getDefaultAccount());
-    },
-
-    save: function (success, fail, args) {
-        //TODO To be implemented
-    },
-
+    // getDefaultAccount: function (success, fail, args) {
+        // if (!_utils.hasPermission(_config, "access_pimdomain_messages")) {
+            // success(null);
+            // return;
+        // }
+// 
+        // success(pimMessages.getDefaultAccount());
+    // },
+// 
+    // save: function (success, fail, args) {
+        // //TODO To be implemented
+    // },
+// 
     send: function (success, fail, args) {
+        try {
+    console.log("Index.send");
+    console.log(args);
+        
         var parsedArgs;
 
-        if (!_utils.hasPermission(_config, "access_pimdomain_messages")) {
-            success(null);
-            return;
-        }
+        // if (!_utils.hasPermission(_config, "access_pimdomain_messages")) {
+            // success(null);
+            // return;
+        // }
 
         parsedArgs = getParsedArgs(args);
-        success(pimMessages.send(parsedArgs));
-    },
+    console.log(parsedArgs);
+    console.log(pimMessages);
+    console.log(success);
+    //pimMessages.send(parsedArgs);
+        //success(pimMessages.send(parsedArgs));
+            console.log("Message Sent");
 
-    find: function (success, fail, args) {
-        var findOptions = {},
-            key;
-
-        for (key in args) {
-            if (args.hasOwnProperty(key)) {
-                findOptions[key] = JSON.parse(decodeURIComponent(args[key]));
-            }
         }
-
-        if (!checkPermission(success, findOptions["_eventId"])) {
-            return;
-        }
-
-        pimMessages.find(findOptions);
-        success();
-    },
+        catch(e) {console.log("Error: Index.send " + e)}
+    }
+// 
+    // find: function (success, fail, args) {
+        // var findOptions = {},
+            // key;
+// 
+        // for (key in args) {
+            // if (args.hasOwnProperty(key)) {
+                // findOptions[key] = JSON.parse(decodeURIComponent(args[key]));
+            // }
+        // }
+// 
+        // if (!checkPermission(success, findOptions["_eventId"])) {
+            // return;
+        // }
+// 
+        // pimMessages.find(findOptions);
+        // success();
+    // },
 };
 

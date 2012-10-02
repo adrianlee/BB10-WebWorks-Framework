@@ -13,44 +13,46 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var _ID = require("./manifest.json").namespace,
-    _utils = require("./../../lib/utils"),
-    Messsage,
-    MessageError = require("./MessageError"),
-    MessageBody = require("./MessageBody"),
-    MessageContact = require("./MessageContact"),
-    MessageAttachment = require("./MessageAttachment");
+var _ID = "blackberry.pim.messaging";//require("./manifest.json").namespace,
+    // _utils = require("./../../lib/utils"),
+    // Messsage,
+    // MessageError = require("./MessageError"),
+    // MessageBody = require("./MessageBody"),
+    // MessageContact = require("./MessageContact"),
+    // MessageAttachment = require("./MessageAttachment");
 
 Messsage = function (args) {
-    var messageId = args.messageId,
-        folderId = args.folderId,
-        accountId = args.accountId,
-        conversationId = args.conversationId,
-        status = args.status,
-        sender = new MessageContact(args.sender),
-        recipients = MessageContact.getContacts(args.recipients),
-        subject = args.subject,
-        body = new MessageBody(args.body),
-        attachments = MessageAttachment.getAttachments(args.attachments),
-        attachementCount = args.attachementCount;
+    // var messageId = args.messageId,
+        // folderId = args.folderId,
+        // accountId = args.accountId,
+        // conversationId = args.conversationId,
+        // status = args.status,
+        // sender = new MessageContact(args.sender),
+        // recipients = MessageContact.getContacts(args.recipients),
+        // subject = args.subject,
+        // body = new MessageBody(args.body),
+        // attachments = MessageAttachment.getAttachments(args.attachments),
+        // attachementCount = args.attachementCount;
 
     return {
-        'mimeType': args.mimeType,
-        'inbound': args.inbound,
-        'priority': args.priority,
-        'followUp': args.followUp,
-        'status': status,
-        'deviceTimestamp': args.deviceTimestamp,
-        'serverTimestamp': args.serverTimestamp,
-        'sender': sender,
-        'recipients': recipients,
-        'subject': subject,
-        'body': body.toJSON(),
-        'attachments': attachments,
-        'attachementCount': attachementCount,
-        'save': function () {
-        }, 
+        // 'mimeType': args.mimeType,
+        // 'inbound': args.inbound,
+        // 'priority': args.priority,
+        // 'followUp': args.followUp,
+        // 'status': status,
+        // 'deviceTimestamp': args.deviceTimestamp,
+        // 'serverTimestamp': args.serverTimestamp,
+        // 'sender': sender,
+        // 'recipients': recipients,
+        // 'subject': subject,
+        // 'body': body.toJSON(),
+        // 'attachments': attachments,
+        // 'attachementCount': attachementCount,
+        // 'save': function () {
+        // }, 
         'send': function (onSuccess, onError, args) {
+    console.log("Message.send");
+            
 /*            
             function messageBuilder () {
                 
@@ -100,7 +102,6 @@ Messsage = function (args) {
         }
     };
 };
-
 
 Messsage.prototype.getAttachment = function (index) {
     try {
