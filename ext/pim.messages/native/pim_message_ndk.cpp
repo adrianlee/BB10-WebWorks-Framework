@@ -66,14 +66,20 @@ namespace webworks {
     }
 
     void PimMessageNdk::send(const Json::Value& argsObj) {
-        bb::pim::message::MessageBuilder *builder;
+        bb::pim::message::MessageBuilder *builder = MessageBuilder::create(-1);
 
-        builder->subject = argsObj["subject"];
-        builder->addRecepient(argsObj["recepient"]);
-        builder->body(MessageBody::PlainText, argsObj["body"].toUtf8());
+        QString *subjectString = new QString(argsObj["subject"].asCString());
+        builder->subject(*subjectString);
+        
+        QString *recipientString = new QString(argsObj["recipient"].asCString());
+        MessageContact recipient = MessageContact(-1, MessageContact::To, QString(), *recipientString);
+        builder->addRecipient(recipient);
+        
+        QString *bodyString = new QString(argsObj["body"].asCString());
+        builder->body(MessageBody::PlainText, bodyString->toUtf8());
         
         bb::pim::message::MessageService messageService;
-        messageService->send(-1, *builder);
+        messageService.send(-1, *builder);
     }
     
 

@@ -20,6 +20,7 @@
 #include <bb/pim/account/Account>
 #include <bb/pim/account/AccountService>
 #include <bb/pim/message/MessageService>
+#include <bb/pim/message/MessageBuilder>
 #include <string>
 
 class PimMessages;

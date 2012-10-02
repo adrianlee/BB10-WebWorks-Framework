@@ -78,7 +78,7 @@ std::string PimMessage::InvokeMethod(const std::string& command)
         return jsonString;
     }
     else if (strCommand == "send") {
-        Json::Value result = messageController->send(obj);
+        messageController->send(obj);
     }
 
     return "";
