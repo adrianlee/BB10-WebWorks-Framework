@@ -24,6 +24,9 @@ var cal,
     CalendarRepeatRule,
     Attendee;
 
+// TODO test find by start/end date
+// TODO test find without filter
+
 function testReadOnly(object, property) {
     var oldValue = object[property];
     object[property] = "test different";
@@ -335,8 +338,8 @@ describe("blackberry.pim.calendar", function () {
 
     describe("blackberry.pim.calendar.createEvents", function () {
         it('should return a CalendarEvent object', function () {
-            var start = new Date("Dec 31, 2012"),
-                end = new Date("Jan 01, 2013"),
+            var start = new Date("Dec 31, 2012, 12:00"),
+                end = new Date("Jan 01, 2013, 12:00"),
                 summary = "WebWorksTest create event 1",
                 location = "Location 1";
 
@@ -366,8 +369,8 @@ describe("blackberry.pim.calendar", function () {
                     expect(created).toBeDefined();
                     expect(typeof created.id).toBe("string");
                     expect(created.id).not.toBe("");
-                    expect(created.start.toISOString()).toBe(new Date("Dec 31, 2012").toISOString());
-                    expect(created.end.toISOString()).toBe(new Date("Jan 01, 2013").toISOString());
+                    expect(created.start.toISOString()).toBe(new Date(Date.parse("Dec 31, 2012, 12:00")).toISOString());
+                    expect(created.end.toISOString()).toBe(new Date(Date.parse("Jan 01, 2013, 12:00")).toISOString());
                     expect(created.allDay).toBeTruthy();
                     expect(created.summary).toBe("WebWorksTest create event 1");
                     expect(created.location).toBe("Location 1");
@@ -392,8 +395,8 @@ describe("blackberry.pim.calendar", function () {
             findByEventsByPrefix("WebWorksTest create event 1", function (events) {
                 expect(events.length).toBe(1);
                 expect(events[0].id).not.toBe("");
-                expect(events[0].start.toISOString()).toBe(new Date("Dec 31, 2012").toISOString());
-                expect(events[0].end.toISOString()).toBe(new Date("Jan 01, 2013").toISOString());
+                expect(events[0].start.toISOString()).toBe(new Date("Dec 31, 2012, 12:00").toISOString());
+                expect(events[0].end.toISOString()).toBe(new Date("Jan 01, 2013, 12:00").toISOString());
                 expect(events[0].allDay).toBeTruthy();
                 expect(events[0].summary).toBe("WebWorksTest create event 1");
                 expect(events[0].location).toBe("Location 1");
@@ -413,8 +416,8 @@ describe("blackberry.pim.calendar", function () {
                     expect(saved.summary).toBe(newSummary);
                     expect(saved.location).toBe(newLocation);
                     expect(saved.allDay).toBe(newAllDay);
-                    expect(saved.start.toISOString()).toBe(newStart.toISOString());
-                    expect(saved.end.toISOString()).toBe(newEnd.toISOString());
+                    expect(saved.start.toISOString()).toBe(new Date("Dec 31, 2012, 11:30").toISOString());
+                    expect(saved.end.toISOString()).toBe(new Date("Dec 31, 2012, 11:45").toISOString());
                 }),
                 errorCb = jasmine.createSpy().andCallFake(function () {
                     called = true;
@@ -902,7 +905,7 @@ describe("blackberry.pim.calendar", function () {
                 summary = "WebWorksTest 1st Fri of 7th month every year",
                 rule = new CalendarRepeatRule({
                     "frequency": CalendarRepeatRule.FREQUENCY_YEARLY_AT_A_WEEK_DAY_OF_MONTH,
-                    "expires": new Date("Jun 30, 2017"),
+                    "expires": new Date("Jun 30, 2017, 12:00"),
                     "dayInWeek": CalendarRepeatRule.FRIDAY,
                     "weekInMonth": 1,
                     "monthInYear": 7
@@ -973,7 +976,7 @@ describe("blackberry.pim.calendar", function () {
                 summary = "WebWorksTest last day of every month",
                 rule = new CalendarRepeatRule({
                     "frequency": CalendarRepeatRule.FREQUENCY_MONTHLY,
-                    "expires": new Date("Jun 1, 2013"),
+                    "expires": new Date("Jun 1, 2013, 12:00"),
                     "dayInMonth": CalendarRepeatRule.LAST_DAY_IN_MONTH
                 }),
                 called = false,
@@ -1003,7 +1006,7 @@ describe("blackberry.pim.calendar", function () {
             });
         });
 
-        it('Montly recurrence on the last day of the month works', function () {
+        it('Monthly recurrence on the last day of the month works', function () {
             var called = false,
                 successCb = jasmine.createSpy().andCallFake(function (events) {
                     var starts = [];
@@ -1043,7 +1046,7 @@ describe("blackberry.pim.calendar", function () {
                 summary = "WebWorksTest test exception event",
                 rule = new CalendarRepeatRule({
                     "frequency": CalendarRepeatRule.FREQUENCY_WEEKLY,
-                    "expires": new Date("Feb 18, 2013"),
+                    "expires": new Date("Feb 18, 2013, 12:00"),
                     "dayInWeek": CalendarRepeatRule.TUESDAY | CalendarRepeatRule.FRIDAY
                 }),
                 called = false,
@@ -1204,8 +1207,8 @@ describe("blackberry.pim.calendar", function () {
             var called = false,
                 filter = new CalendarEventFilter("WebWorksTest abc", null, null, null, false),
                 findOptions = new CalendarFindOptions(filter, null, CalendarFindOptions.DETAIL_FULL),
-                start = new Date("Dec 31, 2012"),
-                end = new Date("Jan 01, 2013"),
+                start = new Date("Dec 31, 2012, 12:00"),
+                end = new Date("Jan 01, 2013, 12:00"),
                 summary = "WebWorksTest abc",
                 location = "Home",
                 successCb = jasmine.createSpy().andCallFake(function (events) {
@@ -1246,8 +1249,8 @@ describe("blackberry.pim.calendar", function () {
             var called = false,
                 filter = new CalendarEventFilter("WebWorksTest ab", null, null, null, false),
                 findOptions = new CalendarFindOptions(filter, [{"fieldName": CalendarFindOptions.SORT_FIELD_SUMMARY, "desc": true}], CalendarFindOptions.DETAIL_FULL),
-                start = new Date("Dec 31, 2012"),
-                end = new Date("Jan 01, 2013"),
+                start = new Date("Dec 31, 2012, 12:00"),
+                end = new Date("Jan 01, 2013, 12:00"),
                 summary = "WebWorksTest ab",
                 location = "Work",
                 successCb = jasmine.createSpy().andCallFake(function (events) {
@@ -1287,8 +1290,8 @@ describe("blackberry.pim.calendar", function () {
             var called = false,
                 filter = new CalendarEventFilter("WebWorksTest ab", null, null, null, false),
                 findOptions = new CalendarFindOptions(filter, [{"fieldName": CalendarFindOptions.SORT_FIELD_START, "desc": false}], CalendarFindOptions.DETAIL_FULL),
-                start = new Date("Dec 30, 2012"),
-                end = new Date("Dec 31, 2012"),
+                start = new Date("Dec 30, 2012, 12:00"),
+                end = new Date("Dec 31, 2012, 12:00"),
                 summary = "WebWorksTest abcd",
                 location = "Work",
                 successCb = jasmine.createSpy().andCallFake(function (events) {

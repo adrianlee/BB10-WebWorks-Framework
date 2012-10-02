@@ -226,6 +226,11 @@ Json::Value PimCalendarQt::CreateCalendarEvent(const Json::Value& args)
 
     ev.setStartTime(startTime);
     ev.setEndTime(endTime);
+
+    if (args.isMember("timezone") && args["timezone"].isString()) {
+        ev.setTimezone(QString(args["timezone"].asCString()));
+    }
+
     // TODO(rtse): timezone
     ev.setAllDay(args["allDay"].asBool());
     ev.setSubject(args["summary"].asCString());
@@ -731,14 +736,14 @@ bool PimCalendarQt::getSearchParams(bbpim::EventSearchParameters& searchParams, 
 
         // filter - start - optional
         if (!filter["start"].empty()) {
-            searchParams.setStart(QDateTime::fromString(filter["start"].asCString(), Qt::ISODate));
+            searchParams.setStart(QDateTime::fromString(filter["start"].asCString(), Qt::ISODate)); // TODO
         } else {
             searchParams.setStart(now.addYears(-100));
         }
 
         // filter - end - optional
         if (!filter["end"].empty()) {
-            searchParams.setEnd(QDateTime::fromString(filter["end"].asCString(), Qt::ISODate));
+            searchParams.setEnd(QDateTime::fromString(filter["end"].asCString(), Qt::ISODate)); // TODO
         } else {
             searchParams.setEnd(now.addYears(100));
         }

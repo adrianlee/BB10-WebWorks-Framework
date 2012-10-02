@@ -76,7 +76,7 @@ CalendarEvent.prototype.save = function (onSaveSuccess, onSaveError) {
                     }
                 });
             } else if (calendarUtils.isDate(that[key])) {
-                args[key] = that[key].toISOString();
+                args[key] = calendarUtils.preprocessDate(that[key]);
             } else {
                 args[key] = that[key];
             }
@@ -109,14 +109,14 @@ CalendarEvent.prototype.save = function (onSaveSuccess, onSaveError) {
     if (args.recurrence) {
         if (args.recurrence.exceptionDates) {
             args.recurrence.exceptionDates.forEach(function (d) {
-                exceptionDatesStrings.push(d.toISOString());
+                exceptionDatesStrings.push(calendarUtils.preprocessDate(d));
             });
 
             args.recurrence.exceptionDates = exceptionDatesStrings;
         }
 
         if (args.recurrence.expires) {
-            args.recurrence.expires = args.recurrence.expires.toISOString();
+            args.recurrence.expires = calendarUtils.preprocessDate(args.recurrence.expires);
         }
     }
 
@@ -138,7 +138,8 @@ CalendarEvent.prototype.save = function (onSaveSuccess, onSaveError) {
 
     args._eventId = utils.guid();
 
-    console.log(args);
+    //console.log("args to come");
+    //console.log(args);
 
     saveCallback = function (args) {
         var result = JSON.parse(unescape(args.result)),

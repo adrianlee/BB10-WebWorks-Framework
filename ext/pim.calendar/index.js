@@ -112,6 +112,19 @@ module.exports = {
         }
 
         success(pimCalendar.getTimezones());
+    },
+
+    getCurrentTimezone: function (success, fail, args) {
+        var pps = qnx.webplatform.pps,
+            ppsObj = pps.create("/pps/services/confstr/_CS_TIMEZONE", pps.PPSMode.FULL);
+
+        ppsObj.open(pps.FileMode.RDONLY);
+
+        if (ppsObj.data && ppsObj.data._CS_TIMEZONE) {
+            success(ppsObj.data._CS_TIMEZONE._CS_TIMEZONE);
+        } else {
+            success(null);
+        }
     }
 };
 

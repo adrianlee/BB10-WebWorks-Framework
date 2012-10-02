@@ -28,5 +28,10 @@ module.exports = {
         }
 
         return props;
+    },
+    preprocessDate: function (date) {
+        var tmpDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
+        tmpDate.setMilliseconds(0);
+        return tmpDate.toISOString();
     }
 };

@@ -139,6 +139,10 @@ _self.getTimezones = function () {
     return window.webworks.execSync(_ID, "getTimezones");
 };
 
+_self.getCurrentTimezone = function () {
+    return window.webworks.execSync(_ID, "getCurrentTimezone");
+}
+
 _self.findEvents = function (findOptions, onFindSuccess, onFindError) {
     var callback,
         eventId;
