@@ -47,6 +47,7 @@
 #include <qDebug>
 
 #include "pim_calendar_qt.hpp"
+#include "timezone_utils.hpp"
 
 namespace webworks {
 /*
@@ -219,19 +220,23 @@ Json::Value PimCalendarQt::CreateCalendarEvent(const Json::Value& args)
         ev.setFolderId(intToFolderId(accountService.getDefault(bb::pim::account::Service::Calendars)));
     }
 
+    QString timezone = "";
+
+    if (args.isMember("timezone") && args["timezone"].isString()) {
+        timezone = QString(args["timezone"].asCString());
+        ev.setTimezone(timezone);
+    }
+
+    // TODO(rtse): timezone
+
     QDateTime startTime = QDateTime::fromString(args["start"].asCString(), "yyyy-MM-dd'T'hh:mm:ss'.000Z'");
     QDateTime endTime = QDateTime::fromString(args["end"].asCString(),  "yyyy-MM-dd'T'hh:mm:ss'.000Z'");
 
     fprintf(stderr, "After start end!%s\n", "");
 
-    ev.setStartTime(startTime);
-    ev.setEndTime(endTime);
+    ev.setStartTime(TimezoneUtils::convertFromLocalToUtc(startTime, timezone));
+    ev.setEndTime(TimezoneUtils::convertFromLocalToUtc(endTime, timezone));
 
-    if (args.isMember("timezone") && args["timezone"].isString()) {
-        ev.setTimezone(QString(args["timezone"].asCString()));
-    }
-
-    // TODO(rtse): timezone
     ev.setAllDay(args["allDay"].asBool());
     ev.setSubject(args["summary"].asCString());
     ev.setLocation(args["location"].asCString());
