@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 var MesssageAccount,
+    EnterpriseType,
+    FolderType,
     MessageError = require("./MessageError");
 
 MesssageAccount = function (args) {
@@ -21,9 +23,33 @@ MesssageAccount = function (args) {
         throw new MessageError(MessageError.INVALID_ARGUMENT_ERROR);
     }
 
-    this.accountId = args.accountId;
-    this.isEnterprise = args.isInterprise;
-    this.isSocial = args.isSocial;
+    return {
+        'name': args.name,
+        'enterpriseType': args.enterpriseType,
+        'social': args.social,
+        'getMessageFolderInfo': function () {
+            return args.folders;
+        }
+    };
 };
+
+EnterpriseType = function () {
+    window.webworks.defineReadOnlyField(this, "EnterpriseUnknown", -1);
+    window.webworks.defineReadOnlyField(this, "NonEnterprise", 0);
+    window.webworks.defineReadOnlyField(this, "Enterprise", 1);
+};
+
+FolderType = function (){
+    window.webworks.defineReadOnlyField(this, "Unknown", 0);
+    window.webworks.defineReadOnlyField(this, "Inbox", 1);
+    window.webworks.defineReadOnlyField(this, "Outbox", 2);
+    window.webworks.defineReadOnlyField(this, "Drafts", 3);
+    window.webworks.defineReadOnlyField(this, "Sent", 4);
+    window.webworks.defineReadOnlyField(this, "Trash", 5);
+    window.webworks.defineReadOnlyField(this, "Other", 6);
+};
+
+MesssageAccount.EnterpriseType = EnterpriseType;
+MesssageAccount.FolderType = FolderType;
 
 module.exports = MesssageAccount;
