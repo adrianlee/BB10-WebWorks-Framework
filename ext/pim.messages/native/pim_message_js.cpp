@@ -64,12 +64,6 @@ std::string PimMessage::InvokeMethod(const std::string& command)
 
     Json::Reader reader;
     Json::Value *obj = new Json::Value;
-    bool parse = reader.parse(jsonObject, *obj);
-
-    if (!parse) {
-        fprintf(stderr, "%s", "error parsing\n");
-        return "Cannot parse JSON object";
-    }
 
     if (strCommand == "getAccounts") {
         Json::Value result = messageController->getAccounts();
@@ -78,7 +72,14 @@ std::string PimMessage::InvokeMethod(const std::string& command)
         return jsonString;
     }
     else if (strCommand == "send") {
+        bool parse = reader.parse(jsonObject, *obj);
+
+        if (!parse) {
+            fprintf(stderr, "%s", "error parsing\n");
+            return "Cannot parse JSON object";
+        }
         messageController->send(obj);
+        return "";
     }
 
     return "";

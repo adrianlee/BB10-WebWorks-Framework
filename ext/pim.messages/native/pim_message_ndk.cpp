@@ -19,7 +19,6 @@
 #include <string>
 #include <sstream>
 #include <QList>
-#include <QtCore>
 #include "pim_message_ndk.hpp"
 
 namespace webworks {
@@ -32,49 +31,58 @@ namespace webworks {
     {
     }
 
-    /****************************************************************
-    * Public Functions
-    ****************************************************************/
-    
     Json::Value PimMessageNdk::getAccounts()
     {
-        fprintf(stderr, "Inside getAccounts of pim_message_ndk.cpp \n");
-    
-        qDebug() << "Before calling AccountService";
-
-        //Grab list of accounts
-        QList<Account> accountList = AccountService().accounts(Service::Messages);
+        Json::Value returnObj;
         
-        qDebug() << accountList;
-
-        qDebug() << "before the for loop";
+        fprintf(stderr, "before accountList\n");
         
+        const QList<Account>accountList = AccountService().accounts(Service::Messages);
+
+        fprintf(stderr, "after accountList\n");
+
+        fprintf(stderr, "accountList size: %d\n", accountList.size());
+
         //Create Json object containing array of accounts
         Json::Value accountArray;
         for (int i = 0; i < accountList.size(); i++)
         {
-            qDebug() << "inside the for loop";
-
+            fprintf(stderr, "inside for loop\n");
             Account c_account = accountList[i];
 
             //Json representation of account
             Json::Value accountJson;
-            
+
             std::string accountIdString;
             std::stringstream ss;
             ss << c_account.id();
             accountIdString = ss.str();
 
-            fprintf(stderr, "%s\n",accountIdString.c_str());
+            fprintf(stderr, "AccoundIdString: %s\n",accountIdString.c_str());
+            fprintf(stderr, "Account DisplayName: %s\n", c_account.displayName().toStdString().c_str());
 
             accountJson["id"] = Json::Value(accountIdString);
-            accountJson["displayName"] = Json::Value(c_account.displayName().toStdString());
+            accountJson["name"] = Json::Value(c_account.displayName().toStdString());
+
+            Json::Value accountFoldersArray;
+            const QList<MessageFolder> accountFolders = MessageService().folders(c_account.id());
+
+            for (int j = 0; j < accountFolders.size(); j++)
+            {
+                MessageFolder c_messageFolder = accountFolders[i];
+
+                Json::Value folderJson;
+                folderJson["type"] = Json::Value(c_messageFolder.type());
+                folderJson["name"] = Json::Value(c_messageFolder.name().toStdString());
+                accountFoldersArray.append(folderJson);
+            }
+            
+            accountJson["folders"] = accountFoldersArray;
 
             accountArray.append(accountJson);
         }
-        qDebug() << "after the for loop";
-
-        Json::Value returnObj;
+        fprintf(stderr, "Size of accountArray: %d\n", accountArray.size());
+        
         returnObj["accounts"] = accountArray;
         return returnObj;
     }

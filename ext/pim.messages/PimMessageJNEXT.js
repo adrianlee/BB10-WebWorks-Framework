@@ -57,7 +57,6 @@ JNEXT.pimMessage = function ()
     self.getAccounts = function () {
         var value = JNEXT.invoke(self.m_id, "getAccounts");
         console.log("value: " + value);
-//        console.log(value);
         return JSON.parse(value).accounts;
     };
 

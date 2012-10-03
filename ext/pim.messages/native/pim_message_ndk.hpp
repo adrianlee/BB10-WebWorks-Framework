@@ -21,6 +21,7 @@
 #include <bb/pim/account/AccountService>
 #include <bb/pim/message/MessageService>
 #include <bb/pim/message/MessageBuilder>
+#include <bb/pim/message/MessageFolder>
 #include <string>
 
 class PimMessages;
