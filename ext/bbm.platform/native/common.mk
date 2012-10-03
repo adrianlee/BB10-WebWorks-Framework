@@ -4,6 +4,7 @@ endif
 include $(QCONFIG)
 
 NAME=bbm
+PLUGIN=yes
 
 include ../../../../meta.mk
 
@@ -12,4 +13,4 @@ SRCS+=bbm_bps.cpp \
 
 include $(MKFILES_ROOT)/qtargets.mk
 
-LIBS+=bbmsp bps socket QtCore
+LIBS+=bbmsp bps socket QtCore json

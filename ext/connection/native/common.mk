@@ -3,7 +3,8 @@ QCONFIG=qconfig.mk
 endif
 include $(QCONFIG)
 
-NAME=netstatus
+NAME=connection
+PLUGIN=yes
 
 include ../../../../meta.mk
 

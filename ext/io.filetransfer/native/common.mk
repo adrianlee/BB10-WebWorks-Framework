@@ -4,6 +4,7 @@ endif
 include $(QCONFIG)
 
 NAME=filetransfer
+PLUGIN=yes
 
 include ../../../../meta.mk
 
@@ -17,4 +18,4 @@ EXTRA_INCVPATH+=../../../../ui.dialog/native
 
 include $(MKFILES_ROOT)/qtargets.mk
 
-LIBS+=bps curl
+LIBS+=bps curl json

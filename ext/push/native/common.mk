@@ -4,6 +4,7 @@ endif
 include $(QCONFIG)
 
 NAME=pushjnext
+PLUGIN=yes
 
 include ../../../../meta.mk
 
@@ -12,4 +13,4 @@ SRCS+=push_js.cpp \
 
 include $(MKFILES_ROOT)/qtargets.mk
 
-LIBS+=PushService
+LIBS+=PushService json

@@ -4,6 +4,7 @@ endif
 include $(QCONFIG)
 
 NAME=dialog
+PLUGIN=yes
 
 include ../../../../meta.mk
 
@@ -12,4 +13,4 @@ SRCS+=dialog_bps.cpp \
 
 include $(MKFILES_ROOT)/qtargets.mk
 
-LIBS+=bps
+LIBS+=bps json

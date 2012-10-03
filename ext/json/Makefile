@@ -1,5 +1,4 @@
 LIST=VARIANT
-EARLY_DIRS=json
 ifndef QRECURSE
 QRECURSE=recurse.mk
 ifdef QCONFIG

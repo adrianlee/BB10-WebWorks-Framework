@@ -4,6 +4,7 @@ endif
 include $(QCONFIG)
 
 NAME=pimcontacts
+PLUGIN=yes
 
 include ../../../../meta.mk
 
@@ -12,4 +13,4 @@ SRCS+=pim_contacts_qt.cpp \
 
 include $(MKFILES_ROOT)/qtargets.mk
 
-LIBS+=bbpim QtCore
+LIBS+=bbpim QtCore json
