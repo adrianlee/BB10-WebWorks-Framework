@@ -15,19 +15,27 @@
  */
 function validateIdMessageSettings(args) {
     args.eventId = JSON.parse(decodeURIComponent(args.eventId));
-
-    if (args.settings) {
-        args.settings = JSON.parse(decodeURIComponent(args.settings));
-    } else {
-        args.settings = { title : "" };
-    }
-
     if (args.message) {
         args.message = decodeURIComponent(args.message);
+        args.message = args.message.replace(/"/g, '');
     } else {
         return 1;
     }
-
+    if (args.type) {
+        args.type = decodeURIComponent(args.type);
+        args.type = args.type.replace(/"/g, '');
+    }
+    if (args.buttons) {
+        args.buttons = decodeURIComponent(args.buttons);
+    }
+    if (args.title) {
+        args.title = decodeURIComponent(args.title);
+        args.title = args.title.replace(/"/g, '');
+    }
+    if (args.option) {
+        args.option = decodeURIComponent(args.option);
+        args.option = args.option.replace(/"/g, '');
+    }
     return 0;
 }
 
@@ -42,28 +50,21 @@ module.exports = {
             fail(-1, "message is undefined");
             return;
         }
-
-        if (args.buttons) {
-            args.buttons = JSON.parse(decodeURIComponent(args.buttons));
-        } else {
+        if(!args.title){
+            fail(-1, "buttons is title");
+            return;
+        }
+        if(!args.buttons){
             fail(-1, "buttons is undefined");
             return;
         }
-        
-        if (!Array.isArray(args.buttons)) {
-            fail(-1, "buttons is not an array");
-            return;
-        }
-
         var  messageObj = {
-            title : "Web Inspector Enabled",
-            htmlmessage :  "Test Message",
-            dialogType :'JavaScriptAlert'
+            title : args.title,
+            htmlmessage :  args.message,
+            dialogType : "customAsk",
+            optionalButtons : args.buttons
         };
-
-        overlayWebView.showDialog(messageObj);
-        
-        //dialog.show(args.eventId, args.message, args.buttons, args.settings);
+        overlayWebView.showDialog(messageObj, function(result){alert(result.customButton);});
         success();
     },
 
@@ -72,28 +73,13 @@ module.exports = {
             fail(-1, "message is undefined");
             return;
         }
-        
-        if (args.type) {
-            args.type = JSON.parse(decodeURIComponent(args.type));
-        } else {
-            fail(-1, "type is undefined");
-            return;
-        }
-        
-        if (args.type < 0 || args.type > 4) {
-            fail(-1, "invalid dialog type: " + args.type);
-            return;
-        }
-
-        var buttons = {
-            0: ["Ok"],                  // D_OK
-            1: ["Save", "Discard"],     // D_SAVE
-            2: ["Delete", "Cancel"],    // D_DELETE
-            3: ["Yes", "No"],           // D_YES_NO
-            4: ["Ok", "Cancel"]         // D_OK_CANCEL
+        var  messageObj = {
+            title : args.title,
+            htmlmessage :  args.message,
+            dialogType : args.type,
+            thirdOptionLabel : args.option
         };
-
-        dialog.show(args.eventId, args.message, buttons[args.type], args.settings);
+        overlayWebView.showDialog(messageObj);
         success();
     }
 };

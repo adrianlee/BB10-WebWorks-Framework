@@ -24,22 +24,16 @@ function createEventHandler(callback) {
     }
 }
 
-_self.customAskAsync = function (message, buttons, callback, settings) {
-    var args = { "eventId" : _eventId, "message" : message, "buttons" : buttons, "callback" : callback };
-    if (settings) {
-        args.settings = settings;
-    }
+_self.customAskAsync = function (title, message, buttons, callback) {
+    var args = { "eventId" : _eventId, "message" : message, "title" : title, "buttons" : buttons, "callback" : callback };
 
     createEventHandler(callback);
     return window.webworks.execAsync(_ID, "customAskAsync", args);
 };
 
-_self.standardAskAsync = function (message, type, callback, settings) {
-    var  args = { "eventId" : _eventId, "message" : message, "type" : type, "callback" : callback };
-    if (settings) {
-        args.settings = settings;
-    }
-
+_self.standardAskAsync = function (title, message, type, option, callback) {
+    var  args = { "eventId" : _eventId, "title" : title, "message" : message, "type" : type, "callback" : callback };
+    if(option){args.option = option;}
     createEventHandler(callback);
     return window.webworks.execAsync(_ID, "standardAskAsync", args);
 };
