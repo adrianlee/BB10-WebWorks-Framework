@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 var _self = {},
-    _ID = require("./manifest.json").namespace;
+    _ID = require("./manifest.json").namespace,
     _utils = require("./../../lib/utils"),
     Message = require("./Message"),
     MessageAccount = require("./MessageAccount"),
@@ -58,8 +58,8 @@ MessageService.getAccounts = function (args) {
     var obj = window.webworks.execSync(_ID, "getAccounts"),
         accounts = [];
         
-        console.log("Accounts Client.js")
-        console.log(obj)
+    console.log("Accounts Client.js");
+    console.log(obj);
 
     obj.forEach(function (account) {
         accounts.push(new MessageAccount(account));
