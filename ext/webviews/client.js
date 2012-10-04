@@ -39,7 +39,13 @@ module.exports = {
      *  }
      * @returns {Number} The webview ID
      */
-    create: function (args) {
+    create: function (options) {
+        var args = {};
+
+        if (options) {
+            args.options = options;
+        }
+
         return window.webworks.execSync(_ID, "create", args);
     },
 

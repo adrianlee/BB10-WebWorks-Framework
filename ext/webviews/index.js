@@ -67,14 +67,11 @@ module.exports = {
      * @returns id {Object} The id of the webview created.
      */
     create: function (success, fail, args) {
-        var localArgs = JSON.parse(decodeURIComponent(args)),
-            id = _webviews.create(localArgs);
+        var localArgs = (args && args.options) ? JSON.parse(decodeURIComponent(args.options)) : {};
 
-        if (id !== -1) {
-            success(id);
-        } else {
-            fail(-1, "Error creating webview");
-        }
+        _webviews.create(localArgs);
+
+        success(_webviews.id);
     },
 
     /**

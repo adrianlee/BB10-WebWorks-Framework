@@ -61,6 +61,7 @@ module.exports = {
             webviewObj.setGeometry(args.x, args.y, args.w, args.h);
             webviewObj.webviewHandle = screenWindowHandle(webviewObj.id);
             webviewObj.autoDeferNetworkingAndJavaScript = false;
+            webviewObj.executeJavaScript("1 + 1");
 
             webviewObj.onNetworkResourceRequested = requestObj.networkResourceRequestedHandler;
 
