@@ -13,28 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var pimMessages = require("./PimMessageJNEXT").messages,
+
+var pimMessage,
     _event = require("../../lib/event"),
-    _utils = require("../../lib/utils"),
-    _config = require("../../lib/config"),
     MessageError = require("./MessageError");
 
-
-// function checkPermission(success, eventId) {
-    // if (!_utils.hasPermission(_config, "access_pimdomain_messages")) {
-        // _event.trigger(eventId, {
-            // "result": escape(JSON.stringify({
-                // "_success": false,
-                // "code": MessageError.PERMISSION_DENIED_ERROR
-            // }))
-        // });
-        // success();
-        // return false;
-    // }
-// 
-    // return true;
-// }
-// 
 function getParsedArgs(args) {
     var parsedArgs = {},
         key;
@@ -49,86 +32,132 @@ function getParsedArgs(args) {
 }
 
 module.exports = {
-    create: function (success, fail, args) {
-        var parsedArgs;
+    // MessageService.findAllMessagesForAccount - Temporoty for testing
+    findAllMessagesForAccount: function (success, fail, args) {
+        var parsedArgs = getParsedArgs(args);
 
-        if (!_utils.hasPermission(_config, "access_pimdomain_messages")) {
-            success(null);
-            return;
-        }
-
-        parsedArgs = getParsedArgs(args);
-        success(pimMessages.create(parsedArgs));
+        pimMessage.findAllMessagesForAccount(parsedArgs);
+        success();
     },
 
-    getAccounts: function (success, fail, args) {
-        var result;
-        console.log("Getting Accounts...");
+    // MessageService.find
+    findMessages: function (success, fail, args) {
+        var parsedArgs = getParsedArgs(args);
 
-        // if (!_utils.hasPermission(_config, "access_pimdomain_messages")) {
-            // success(null);
-            // return;
-        // }
-
-result = pimMessages.getAccounts();
-console.log("Result");
-console.log(result);
-        success(result);
+        pimMessage.findMessages(parsedArgs);
+        success();
     },
 
-    // getDefaultAccount: function (success, fail, args) {
-        // if (!_utils.hasPermission(_config, "access_pimdomain_messages")) {
-            // success(null);
-            // return;
-        // }
-// 
-        // success(pimMessages.getDefaultAccount());
-    // },
-// 
-    // save: function (success, fail, args) {
-        // //TODO To be implemented
-    // },
-// 
-    send: function (success, fail, args) {
-        try {
-    console.log("Index.send");
-    console.log(args);
-        
-        var parsedArgs;
+    // MessageService.getAccounts
+    getAccounts: function (success, fail) {
+        success(pimMessage.getAccounts());
+    },
 
-        // if (!_utils.hasPermission(_config, "access_pimdomain_messages")) {
-            // success(null);
-            // return;
-        // }
+    // MessageService.getDefaultAccount
+    getDefaultAccount: function (success, fail) {
+        success(pimMessage.getDefaultAccount());
+    },
 
-        parsedArgs = getParsedArgs(args);
-    console.log(parsedArgs);
-    console.log(pimMessages);
-    console.log(success);
-    //pimMessages.send(parsedArgs);
-        //success(pimMessages.send(parsedArgs));
-            console.log("Message Sent");
+    // Message.save
+    saveMessage: function (success, fail, args) {
+        var parsedArgs = getParsedArgs(args);
 
-        }
-        catch(e) {console.log("Error: Index.send " + e)}
+        pimMessage.saveMessage(parsedArgs);
+        success();
+    },
+
+    // Message.send
+    sendMessage: function (success, fail, args) {
+        var parsedArgs = getParsedArgs(args);
+
+        pimMessage.sendMessage(parsedArgs);
+        success();
+    },
+
+    // MessageAttachment.save
+    saveAttachment: function (success, fail, args) {
+        var parsedArgs = getParsedArgs(args);
+
+        pimMessage.saveAttachment(parsedArgs);
+        success();
     }
-// 
-    // find: function (success, fail, args) {
-        // var findOptions = {},
-            // key;
-// 
-        // for (key in args) {
-            // if (args.hasOwnProperty(key)) {
-                // findOptions[key] = JSON.parse(decodeURIComponent(args[key]));
-            // }
-        // }
-// 
-        // if (!checkPermission(success, findOptions["_eventId"])) {
-            // return;
-        // }
-// 
-        // pimMessages.find(findOptions);
-        // success();
-    // },
 };
 
+///////////////////////////////////////////////////////////////////
+// JavaScript wrapper for JNEXT plugin
+///////////////////////////////////////////////////////////////////
+
+JNEXT.PimMessage = function ()
+{
+    var self = this;
+
+    self.getId = function () {
+        return self.m_id;
+    };
+
+    self.init = function () {
+        if (!JNEXT.require("pimMessage")) {
+            return false;
+        }
+
+        self.m_id = JNEXT.createObject("pimMessage.PimMessage");
+
+        if (self.m_id === "") {
+            return false;
+        }
+
+        JNEXT.registerEvents(self);
+    };
+
+    self.onEvent = function (strData) {
+        var arData = strData.split(" "),
+            strEventDesc = arData[0],
+            args = {};
+
+        if (strEventDesc === "result") {
+            args.result = escape(strData.split(" ").slice(2).join(" "));
+            _event.trigger(arData[1], args);
+        }
+    };
+
+    self.getAccounts = function () {
+        var value = JNEXT.invoke(self.m_id, "getAccounts");
+        return JSON.parse(value).accounts;
+    };
+
+    self.getDefaultAccount = function () {
+        var value = JNEXT.invoke(self.m_id, "getDefaultAccount");
+        return JSON.parse(value).accounts;
+    };
+
+    self.findAllMessagesForAccount = function (args) {
+        JNEXT.invoke(self.m_id, "findAllMessagesForAccount " + JSON.stringify(args));
+        return "";
+    };
+
+    self.findMessages = function (args) {
+        JNEXT.invoke(self.m_id, "findMessages " + JSON.stringify(args));
+        return "";
+    };
+
+    self.saveMessage = function (args) {
+        JNEXT.invoke(self.m_id, "saveMessage " + JSON.stringify(args));
+        return "";
+    };
+
+    self.sendMessage = function (args) {
+        JNEXT.invoke(self.m_id, "sendMessage " + JSON.stringify(args));
+        return "";
+    };
+
+    self.saveAttachment = function (args) {
+        JNEXT.invoke(self.m_id, "saveAttachment " + JSON.stringify(args));
+        return "";
+    };
+
+    self.m_id = "";
+
+    self.init();
+};
+
+pimMessage = new JNEXT.PimMessage();
