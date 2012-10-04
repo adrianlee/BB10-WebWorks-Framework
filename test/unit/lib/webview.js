@@ -38,7 +38,11 @@ describe("webview", function () {
             addEventListener: jasmine.createSpy(),
             enableWebEventRedirect: jasmine.createSpy(),
             addKnownSSLCertificate: jasmine.createSpy(),
-            continueSSLHandshaking: jasmine.createSpy()
+            continueSSLHandshaking: jasmine.createSpy(),
+            setSensitivity: jasmine.createSpy(),
+            getSensitivity: jasmine.createSpy(),
+            setBackgroundColor: jasmine.createSpy(),
+            getBackgroundColor: jasmine.createSpy()
         };
         mockedApplication = {
         };
@@ -219,6 +223,27 @@ describe("webview", function () {
             webview.create(mockedWebview);
             expect(webview.windowGroup()).toEqual(mockedWebview.windowGroup);
         });
+    });
+
+
+    describe("methods for sensitivity", function () {
+
+        it("setter getter for sensitivity", function () {
+            webview.create(mockedWebview);
+            webview.setSensitivity("Something");
+            expect(mockedWebview.setSensitivity).toHaveBeenCalled();
+            webview.getSensitivity();
+            expect(mockedWebview.getSensitivity).toHaveBeenCalled();
+        });
+
+        it("setter getter for background", function () {
+            webview.create(mockedWebview);
+            webview.setBackgroundColor("Something");
+            expect(mockedWebview.setBackgroundColor).toHaveBeenCalled();
+            webview.getBackgroundColor();
+            expect(mockedWebview.getBackgroundColor).toHaveBeenCalled();
+        });
+
     });
 
 });
