@@ -127,7 +127,7 @@ JNEXT.PimMessage = function ()
 
     self.getDefaultAccount = function () {
         var value = JNEXT.invoke(self.m_id, "getDefaultAccount");
-        return JSON.parse(value).accounts;
+        return JSON.parse(value);
     };
 
     self.findAllMessagesForAccount = function (args) {
