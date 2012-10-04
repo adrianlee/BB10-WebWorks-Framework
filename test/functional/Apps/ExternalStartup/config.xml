@@ -23,6 +23,7 @@
 
     <access uri="http://smoketest-vmyyz.labyyz.testnet.rim.net:8080/js/helpers.js">
         <feature id="blackberry.app" />
+        <feature id="blackberry.io" />
     </access>
 
     <access uri="http://smoketest-vmyyz.labyyz.testnet.rim.net:8080/a/webworks.html">
@@ -31,11 +32,12 @@
 
     <access uri="http://smoketest-vmyyz.labyyz.testnet.rim.net:8080/external.html">
         <feature id="blackberry.app" />
+        <feature id="blackberry.io" />
     </access>
 
     <feature id="blackberry.app" />
 
-    <access uri="file:///access/1000/shared/documents/textData.txt"
+    <access uri="file:///access/1000/shared/documents/textData.txt" />
 
     <license href="http://www.apache.org/licenses/LICENSE-2.0">
         Licensed under the Apache License, Version 2.0 (the "License");

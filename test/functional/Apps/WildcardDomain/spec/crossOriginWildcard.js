@@ -73,6 +73,8 @@ describe("Cross Origin Wildcard", function () {
         runs(function () {
             expect(errorHandler).wasNotCalled();
             expect(fileWritten).toBe(true);
+
+            testHtmlElementLoads('iframe', {src: 'file:///accounts/1000/shared/documents/textData.txt' });
         });
     }
 
@@ -91,7 +93,6 @@ describe("Cross Origin Wildcard", function () {
         // 1. Startup page is local.
         it("can access whitelisted file:// path", function () {
             writeTestFile();
-            return testHtmlElementLoads('iframe', {src: 'file:///accounts/1000/shared/documents/textData.txt' });
         });
     });
 });
