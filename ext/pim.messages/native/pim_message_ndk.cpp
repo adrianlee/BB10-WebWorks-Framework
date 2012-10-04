@@ -31,63 +31,39 @@ namespace webworks {
     {
     }
 
+    /*******************************************************************
+    PUBLIC FUNCTIONS
+    *******************************************************************/
+
     Json::Value PimMessageNdk::getAccounts()
     {
         Json::Value returnObj;
         
-        fprintf(stderr, "before accountList\n");
-        
         const QList<Account>accountList = AccountService().accounts(Service::Messages);
-
-        fprintf(stderr, "after accountList\n");
-
-        fprintf(stderr, "accountList size: %d\n", accountList.size());
-
-        //Create Json object containing array of accounts
         Json::Value accountArray;
         for (int i = 0; i < accountList.size(); i++)
         {
-            fprintf(stderr, "inside for loop\n");
-            Account c_account = accountList[i];
-
-            //Json representation of account
-            Json::Value accountJson;
-
-            std::string accountIdString;
-            std::stringstream ss;
-            ss << c_account.id();
-            accountIdString = ss.str();
-
-            fprintf(stderr, "AccoundIdString: %s\n",accountIdString.c_str());
-            fprintf(stderr, "Account DisplayName: %s\n", c_account.displayName().toStdString().c_str());
-
-            accountJson["id"] = Json::Value(accountIdString);
-            accountJson["name"] = Json::Value(c_account.displayName().toStdString());
-
-            Json::Value accountFoldersArray;
-            const QList<MessageFolder> accountFolders = MessageService().folders(c_account.id());
-
-            for (int j = 0; j < accountFolders.size(); j++)
-            {
-                MessageFolder c_messageFolder = accountFolders[i];
-
-                Json::Value folderJson;
-                folderJson["type"] = Json::Value(c_messageFolder.type());
-                folderJson["name"] = Json::Value(c_messageFolder.name().toStdString());
-                accountFoldersArray.append(folderJson);
-            }
-            
-            accountJson["folders"] = accountFoldersArray;
-
-            accountArray.append(accountJson);
+            Account account = accountList[i];
+            accountArray.append(accountToJson(account));
         }
-        fprintf(stderr, "Size of accountArray: %d\n", accountArray.size());
-        
         returnObj["accounts"] = accountArray;
+        
         return returnObj;
     }
 
-    void PimMessageNdk::send(const Json::Value& argsObj) {
+    Json::Value PimMessageNdk::getDefaultAccount() 
+    {
+        Json::Value returnObj;
+
+        const QMap<Service::Type, Account> defaultAccounts = AccountService().defaultAccounts();
+        Account defaultAccount = defaultAccounts[Service::Messages];
+        returnObj = accountToJson(defaultAccount);
+
+        return returnObj;
+    }
+
+    void PimMessageNdk::send(const Json::Value& argsObj) 
+    {
         bb::pim::message::MessageBuilder *builder = MessageBuilder::create(-1);
 
         QString *subjectString = new QString(argsObj["subject"].asCString());
@@ -102,6 +78,44 @@ namespace webworks {
 
         bb::pim::message::MessageService messageService;
         messageService.send(-1, *builder);
+    }
+
+    /*******************************************************************
+    PRIVATE FUNCTIONS
+    *******************************************************************/
+
+    Json::Value PimMessageNdk::accountToJson(Account account)
+    {
+        Json::Value accountJson;
+
+        std::string accountIdString;
+        std::stringstream ss;
+        ss << account.id();
+        accountIdString = ss.str();
+
+        accountJson["id"] = Json::Value(accountIdString);
+        accountJson["name"] = Json::Value(account.displayName().toStdString());
+
+        Json::Value accountFoldersArray;
+        const QList<MessageFolder> accountFolders = MessageService().folders(account.id());
+        for (int i = 0; i < accountFolders.size(); i++)
+        {
+            MessageFolder messageFolder = accountFolders[i];
+            accountFoldersArray.append(folderToJson(messageFolder));
+        }
+        accountJson["folders"] = accountFoldersArray;
+
+        return accountJson;
+    }
+
+    Json::Value PimMessageNdk::folderToJson(MessageFolder folder)
+    {
+        Json::Value folderJson;
+        
+        folderJson["type"] = Json::Value(folder.type());
+        folderJson["name"] = Json::Value(folder.name().toStdString());
+        
+        return folderJson;
     }
 
 } //namespace webworks

@@ -39,10 +39,12 @@ public:
 
     // PIM Messages related functions
     Json::Value getAccounts();
+    Json::Value getDefaultAccount();
     void send(const Json::Value& argsObj);
 
 private:
-
+    Json::Value accountToJson(Account account);
+    Json::Value folderToJson(MessageFolder folder);
 };
 
 } // namespace webworks

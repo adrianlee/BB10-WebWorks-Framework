@@ -65,13 +65,22 @@ std::string PimMessage::InvokeMethod(const std::string& command)
     Json::Reader reader;
     Json::Value *obj = new Json::Value;
 
-    if (strCommand == "getAccounts") {
+    if (strCommand == "getAccounts")
+    {
         Json::Value result = messageController->getAccounts();
         Json::FastWriter writer;
         std::string jsonString = writer.write(result);
         return jsonString;
     }
-    else if (strCommand == "send") {
+    else if (strCommand == "getDefaultAccount")
+    {
+        Json::Value result = messageController->getDefaultAccount();
+        Json::FastWriter writer;
+        std::string jsonString = writer.write(result);
+        return jsonString;
+    }
+    else if (strCommand == "send")
+    {
         bool parse = reader.parse(jsonObject, *obj);
 
         if (!parse) {

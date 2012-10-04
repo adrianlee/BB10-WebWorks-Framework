@@ -60,6 +60,12 @@ JNEXT.pimMessage = function ()
         return JSON.parse(value).accounts;
     };
 
+    self.getDefaultAccount = function () {
+        var value = JNEXT.invoke(self.m_id, "getDefaultAccount");
+        console.log("value: " + value);
+        return JSON.parse(value);
+    }
+
     self.send = function (args) {
         JNEXT.invoke(self.m_id, "send " + JSON.stringify(args));
         return "";
