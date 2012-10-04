@@ -13,122 +13,125 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var _ID = "blackberry.pim.messaging";//require("./manifest.json").namespace,
-    // _utils = require("./../../lib/utils"),
-    // Messsage,
-    // MessageError = require("./MessageError"),
-    // MessageBody = require("./MessageBody"),
-    // MessageContact = require("./MessageContact"),
-    // MessageAttachment = require("./MessageAttachment");
+var _ID = require("./manifest.json").namespace,
+    _utils = require("./../../lib/utils"),
+    Messsage,
+    MessageError = require("./MessageError"),
+    MessageAccount = require("./MessageAccount"),
+    MessageAddress = require("./MessageAddress"),
+    MessageAttachment = require("./MessageAttachment");
+
+function setCallbackForOnce(eventId, onSuccess, onError) {
+    var callback = function (errorMsg) {
+        if (!errorMsg) {
+            if (onSuccess && typeof onSuccess === "function") {
+                onSuccess();
+            }
+        } else if (onError && typeof onError === "function") {
+            onError();
+        }
+    };
+
+    if (!window.webworks.event.isOn(eventId)) {
+        window.webworks.event.once(_ID, eventId, callback);
+    }
+}
 
 Messsage = function (args) {
-    // var messageId = args.messageId,
-        // folderId = args.folderId,
-        // accountId = args.accountId,
-        // conversationId = args.conversationId,
-        // status = args.status,
-        // sender = new MessageContact(args.sender),
-        // recipients = MessageContact.getContacts(args.recipients),
-        // subject = args.subject,
-        // body = new MessageBody(args.body),
-        // attachments = MessageAttachment.getAttachments(args.attachments),
-        // attachementCount = args.attachementCount;
+    var that = this;
 
-    return {
-        // 'mimeType': args.mimeType,
-        // 'inbound': args.inbound,
-        // 'priority': args.priority,
-        // 'followUp': args.followUp,
-        // 'status': status,
-        // 'deviceTimestamp': args.deviceTimestamp,
-        // 'serverTimestamp': args.serverTimestamp,
-        // 'sender': sender,
-        // 'recipients': recipients,
-        // 'subject': subject,
-        // 'body': body.toJSON(),
-        // 'attachments': attachments,
-        // 'attachementCount': attachementCount,
-        // 'save': function () {
-        // }, 
-        'send': function (onSuccess, onError, args) {
-    console.log("Message.send");
-            
-/*            
-            function messageBuilder () {
-                
-                var message = {
-                   'eventId': _utils.guid(),
-                   'sender': sender.toJSON(),
-                   'recipients': recipients.toJSON(),
-                   'priority': priority,
-                   'followUp': followUp,
-                   'status': status,
-                   'subject': subject,
-                   'body': body.toJSON()
-                }
-                
-                return message;
-            }
- */           
-            
-            //var message = messageBuilder(),
-            var message = {
-                'eventId': _utils.guid(),
-                'subject': "New email",
-                'recipient': "sgolod@rim.com",
-                'body': "You got it!"
-            },
-                callback;
+    this.account = new MessageAccount(args.account);
+    this.folder = args.folder;
+    this.priority = args.priority;
+    this.flagged = args.flagged;
+    this.followup = args.followup;
+    this.status = args.status;
+    this.read = args.read;
+    this.addresses = MessageAddress.getArrayOfObjectsFromArrayOfJSONs(args.addresses);
+    this.attachments = MessageAttachment.getArrayOfObjectsFromArrayOfJSONs(args.attachments);
+    this.subject = args.subject;
+    this.body = args.body;
 
+    this.getId = function () {
+        return args.id;
+    };
 
-            callback = function (args) {
-                var result = JSON.parse(unescape(args.result)),
-                    newContact,
-                    errorObj;
+    function getJSON() {
+        return {
+            'id': that.getId(),
+            'account': that.account.getJSON(),
+            'folder': that.folder,
+            'priority': that.priority,
+            'flagged': that.flagged,
+            'followup': that.followup,
+            'status': that.status,
+            'read': that.read,
+            'addresses': MessageAddress.getArrayOfJSONsFromArrayOfObjects(that.addresses),
+            'attachments': MessageAttachment.getArrayOfJSONsFromArrayOfObjects(that.attachments),
+            'subject': that.subject,
+            'body': that.body
+        };
+    }
 
-                if (result.code !== -1) {
-                    if (onSuccess) {
-                        onSuccess();
-                    }
-                } else {
-                    if (onError && typeof(onError) === "function") {
-                        onError();
-                    }
-                }
-            };
+    this.save = function (onSuccess, onError) {
+        var request;
 
-            window.webworks.event.once(_ID, message.eventId, callback);
-            return window.webworks.execAsync(_ID, "send", message);
+        request = getJSON();
+
+        if ((onSuccess && typeof onSuccess === "function") || (onError && typeof onError === "function")) {
+            request.eventId = _utils.guid();
+            setCallbackForOnce(request.eventId, onSuccess, onError);
+        }
+
+        return window.webworks.execAsync(_ID, "saveMessage", request);
+    };
+
+    this.send = function (onSuccess, onError) {
+        var request;
+
+        request = getJSON();
+
+        if ((onSuccess && typeof onSuccess === "function") || (onError && typeof onError === "function")) {
+            request.eventId = _utils.guid();
+            setCallbackForOnce(request.eventId, onSuccess, onError);
+        }
+
+        return window.webworks.execAsync(_ID, "sendMessage", request);
+    };
+    //TODO To be implemented
+    this.file = function (newFolderName, onSuccess, onError) {
+    };
+    this.addAttachment = function (name, mimeType, filePath) {
+        var props = {
+            'id': _utils.guid(),
+            'name': name,
+            'mimeType': mimeType,
+            'filePath': filePath
+        };
+
+        that.attachments.push(new MessageAttachment(props));
+    };
+    this.removeAttachment = function (index) {
+        if (index && typeof index === "number" && index > 0 && index < that.attachments.length) {
+            that.attachments.splice(index, 1);
         }
     };
 };
 
-Messsage.prototype.getAttachment = function (index) {
-    try {
-        return this.attachments[index];
-    } catch (e) {
-        throw new MessageError(MessageError.INVALID_ARGUMENT_ERROR);
-    }
+Messsage.MessageStatus = function () {
+    window.webworks.defineReadOnlyField(this, "read", 0);
+    window.webworks.defineReadOnlyField(this, "draft", 1);
+    window.webworks.defineReadOnlyField(this, "field", 2);
+    window.webworks.defineReadOnlyField(this, "sent", 3);
+    window.webworks.defineReadOnlyField(this, "deffered", 4);
+    window.webworks.defineReadOnlyField(this, "broadcast", 5);
+    window.webworks.defineReadOnlyField(this, "now", 6);
 };
 
-Messsage.prototype.addAttachment = function (attachment) {
-    this.attachments.push(new MessageAttachment(attachment));
-};
-
-Messsage.prototype.MessageStatus = {
-    'read': 0,
-    'draft': 1,
-    'field': 2,
-    'sent': 3,
-    'deffered': 4,
-    'broadcast': 5,
-    'now': 6
-};
-
-Messsage.prototype.Priority = {
-    'Low': 0,
-    'Normal': 1,
-    'Hight': 2,
+Messsage.PriorityType = function () {
+    window.webworks.defineReadOnlyField(this, "Low", 0);
+    window.webworks.defineReadOnlyField(this, "Normal", 1);
+    window.webworks.defineReadOnlyField(this, "Hight", 2);
 };
 
 module.exports = Messsage;

@@ -16,21 +16,28 @@
 var MesssageAccount,
     EnterpriseType = {},
     FolderType = {},
-    MessageError = require("./MessageError");
+    MessageError = require("./MessageError"),
+    MessageAddress = require("./MessageAddress");
 
 MesssageAccount = function (args) {
     this.name = args.name;
     this.enterpriseType = args.enterpriseType;
     this.social = args.social;
-    this.folders = args.folders;
+    this.folders = MessageAddress.getFoldersArray(args.folders);
 
     this.getId = function () {
         return args.id;
     };
 };
 
-MesssageAccount.prototype.getMessageFolderInfo = function () {
-    return this.folders;
+MesssageAccount.prototype.getJSON = function () {
+    return {
+        'id': this.getId(),
+        'name': this.name,
+        'enterpriseType': this.enterpriseType,
+        'social': this.social,
+        'folders': MessageAddress.getArrayOfJSONsFromArrayOfObjects(this.folders)
+    };
 };
 
 EnterpriseType = function () {

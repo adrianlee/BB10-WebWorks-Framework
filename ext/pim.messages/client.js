@@ -16,51 +16,33 @@
 var _self = {},
     _ID = require("./manifest.json").namespace,
     _utils = require("./../../lib/utils"),
+    MessageService,
     Message = require("./Message"),
     MessageAccount = require("./MessageAccount"),
-    MessageError = require("./MessageError"),
-    MessageService = {};
+    MessageError = require("./MessageError");
 
-function invokeCallback(callback, args) {
-    if (callback && typeof callback === "function") {
-        callback(args);
+MessageService.create = function (account) {
+    var message,
+        defaultAccount;
+
+    if (!account) {
+        defaultAccount = window.webworks.execSync(_ID, "getDefaultAccount");
+        message = window.webworks.execSync(_ID, "create", defaultAccount);
     }
-}
-
-function validateFindArguments(findOptions, onFindSuccess, onFindError) {
-    var error = false;
-
-    //TODO Add logic.
-
-
-    if (error) {
-        invokeCallback(onFindError, new MessageError(MessageError.INVALID_ARGUMENT_ERROR));
+    else if (account instanceof MessageAccount) {
+        message = window.webworks.execSync(_ID, "create", account.getJSON());
+    }
+    else {
+        throw new MessageError(MessageError.INVALID_ARGUMENT_ERROR);
     }
 
-    return !error;
-}
-
-MessageService.create = function (args) {
-    var message;
-
-    // If no accountId provided, default will be used.
-    if (!args.accoutnId) {
-        args.accoutnId = -1;
-    }
-
-    message = window.webworks.execSync(_ID, "create", args);
-    console.log("Client.create Message");
-    console.log(message);
     return new Message(message);
 };
 
-MessageService.getAccounts = function (args) {
+MessageService.getMessageAccounts = function () {
     var obj = window.webworks.execSync(_ID, "getAccounts"),
         accounts = [];
         
-    console.log("Accounts Client.js");
-    console.log(obj);
-
     obj.forEach(function (account) {
         accounts.push(new MessageAccount(account));
     });
@@ -68,31 +50,14 @@ MessageService.getAccounts = function (args) {
     return accounts;
 };
 
-MessageService.getDefaultAccount = function () {
+MessageService.getDefaultMessageAccount = function () {
     var defaultAccount = window.webworks.execSync(_ID, "getDefaultAccount");
 
     return new MessageAccount(defaultAccount);
 };
 
 //TODO Implement the logic for find
-MessageService.find = function (messageFields, findOptions, onFindSuccess, onFindError) {
-    var callback,
-        eventId;
-/*
-    if (!validateFindArguments(findOptions, onFindSuccess, onFindError)) {
-        return;
-    }
-
-    eventId = _utils.guid();
-
-    window.webworks.event.once(_ID, eventId, callback);
-
-    return window.webworks.execAsync(_ID, "find", {
-        "_eventId": eventId,
-        "fields": messageFields,
-        "options": findOptions
-    });
-*/
+MessageService.find = function (messageFields, findOptions, onSuccess, onError) {
 };
 
 _self.MessageService = MessageService;

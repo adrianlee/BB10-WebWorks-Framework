@@ -19,6 +19,10 @@ var MessageError = function (code) {
 
 Object.defineProperty(MessageError, "UNKNOWN_ERROR", { "value": 0 });
 Object.defineProperty(MessageError, "INVALID_ARGUMENT_ERROR", { "value": 1 });
+Object.defineProperty(MessageError, "TIMEOUT_ERROR", { "value": 2 });
+Object.defineProperty(MessageError, "PENDING_OPERATION_ERROR", { "value": 3 });
+Object.defineProperty(MessageError, "IO_ERROR", { "value": 4 });
+Object.defineProperty(MessageError, "NOT_SUPPORTED_ERROR", { "value": 5 });
 Object.defineProperty(MessageError, "PERMISSION_DENIED_ERROR", { "value": 20 });
 
 module.exports = MessageError;
