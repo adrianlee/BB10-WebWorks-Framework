@@ -132,6 +132,12 @@ describe("webview", function () {
             webview.setGeometry(0, 0, 100, 200);
             expect(mockedWebview.setGeometry).toHaveBeenCalledWith(0, 0, 100, 200);
         });
+
+        it("can get geometry", function () {
+            webview.create();
+            webview.setGeometry(0, 0, 100, 100);
+            expect(webview.getGeometry()).toEqual({x: 0, y: 0, w: 100, h: 100});
+        });
     });
 
     describe("application orientation", function () {
