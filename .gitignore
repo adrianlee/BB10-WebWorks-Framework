@@ -20,11 +20,6 @@ target/
 clientFiles/
 lib/webworks-info.js
 
-#build-output
-ext/*/native/x86/*
-ext/*/native/arm/*
-ext/*/native/unitTests/build/*
-
 #Test-App generation
 test/test-app/wwTest.zip
 test/test-app/device
