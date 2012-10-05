@@ -16,9 +16,12 @@
 var _self = {},
     _ID = require("./manifest.json").namespace,
     _utils = require("./../../lib/utils"),
-    MessageService,
+    MessageService = {},
     Message = require("./Message"),
     MessageAccount = require("./MessageAccount"),
+    MessageAddress = require("./MessageAddress"),
+    MessageAttachment = require("./MessageAttachment"),
+    MessageFolder = require("./MessageFolder"),
     MessageError = require("./MessageError");
 
 MessageService.create = function (account) {
@@ -61,5 +64,11 @@ MessageService.find = function (messageFields, findOptions, onSuccess, onError) 
 };
 
 _self.MessageService = MessageService;
+_self.Message = Message;
+_self.MessageAccount = MessageAccount;
+_self.MessageAddress = MessageAddress;
+_self.MessageAttachment = MessageAttachment;
+_self.MessageFolder = MessageFolder;
+_self.MessageError = MessageError;
 
 module.exports = _self;

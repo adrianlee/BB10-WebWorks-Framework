@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 var MesssageAccount,
-    EnterpriseType = {},
-    FolderType = {},
+    EnterpriseType,
+    FolderType,
     MessageError = require("./MessageError"),
     MessageAddress = require("./MessageAddress");
 
@@ -23,7 +23,7 @@ MesssageAccount = function (args) {
     this.name = args.name;
     this.enterpriseType = args.enterpriseType;
     this.social = args.social;
-    this.folders = MessageAddress.getFoldersArray(args.folders);
+    this.folders = MessageAddress.getArrayOfObjectsFromArrayOfJSONs(args.folders);
 
     this.getId = function () {
         return args.id;
