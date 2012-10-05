@@ -94,5 +94,31 @@ module.exports = {
             delete _webviews[id];
         });
         return true;
+    },
+
+    /**
+     * Sets the trigger function to call when a volume event is fired
+     * @param trigger {Function} The trigger function to call when the event is fired
+     */
+    setReadyTrigger: function (trigger) {
+        _readyTrigger = trigger;
+    },
+
+    /**
+     * Sets the trigger function to call when a volume event is fired
+     * @param trigger {Function} The trigger function to call when the event is fired
+     */
+    setDestroyedTrigger: function (trigger) {
+        _destroyedTrigger = trigger;
+    },
+
+    /**
+     * Gets the webview object
+     * @param id {Number} The webview ID
+     * @returns webview {Object} The webview object
+     */
+    getWebview: function (id) {
+        return _webviews[id];
     }
+
 };
