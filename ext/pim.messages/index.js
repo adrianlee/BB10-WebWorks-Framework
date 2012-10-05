@@ -122,7 +122,7 @@ JNEXT.PimMessage = function ()
 
     self.getAccounts = function () {
         var value = JNEXT.invoke(self.m_id, "getAccounts");
-        return JSON.parse(value).accounts;
+        return JSON.parse(value);
     };
 
     self.getDefaultAccount = function () {

@@ -33,14 +33,15 @@ using namespace bb::pim::message;
 
 class PimMessageNdk {
 public:
-    
-    explicit PimMessageNdk();
+    PimMessageNdk();
     ~PimMessageNdk();
 
     // PIM Messages related functions
     Json::Value getAccounts();
     Json::Value getDefaultAccount();
-    void send(const Json::Value& argsObj);
+    Json::Value send(const Json::Value& argsObj);
+    Json::Value save(const Json::Value& argsObj);
+    Json::Value saveAttachment(const Json::Value& argsObj);
 
 private:
     Json::Value accountToJson(Account account);

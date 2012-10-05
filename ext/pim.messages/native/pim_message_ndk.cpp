@@ -31,58 +31,57 @@ namespace webworks {
     {
     }
 
-    /*******************************************************************
-    PUBLIC FUNCTIONS
-    *******************************************************************/
+    /*
+    ----Public Functions
+    */
 
     Json::Value PimMessageNdk::getAccounts()
     {
-        Json::Value returnObj;
+        Json::Value accountArray;
         
         const QList<Account>accountList = AccountService().accounts(Service::Messages);
-        Json::Value accountArray;
         for (int i = 0; i < accountList.size(); i++)
         {
             Account account = accountList[i];
             accountArray.append(accountToJson(account));
         }
-        returnObj["accounts"] = accountArray;
-        
-        return returnObj;
+
+        return accountArray;
     }
 
     Json::Value PimMessageNdk::getDefaultAccount() 
     {
-        Json::Value returnObj;
+        Json::Value defaultAccountJson;
 
         const QMap<Service::Type, Account> defaultAccounts = AccountService().defaultAccounts();
         Account defaultAccount = defaultAccounts[Service::Messages];
-        returnObj = accountToJson(defaultAccount);
+        defaultAccountJson = accountToJson(defaultAccount);
 
+        return defaultAccountJson;
+    }
+
+    Json::Value PimMessageNdk::send(const Json::Value& argsObj) 
+    {
+        Json::Value returnObj;
+        
+        return returnObj;
+    }
+    Json::Value PimMessageNdk::save(const Json::Value& argsObj)
+    {
+        Json::Value returnObj;
+        
+        return returnObj;
+    }
+    Json::Value PimMessageNdk::saveAttachment(const Json::Value& argsObj)
+    {
+        Json::Value returnObj;
+        
         return returnObj;
     }
 
-    void PimMessageNdk::send(const Json::Value& argsObj) 
-    {
-        bb::pim::message::MessageBuilder *builder = MessageBuilder::create(-1);
-
-        QString *subjectString = new QString(argsObj["subject"].asCString());
-        builder->subject(*subjectString);
-
-        QString *recipientString = new QString(argsObj["recipient"].asCString());
-        MessageContact recipient = MessageContact(-1, MessageContact::To, QString(), *recipientString);
-        builder->addRecipient(recipient);
-
-        QString *bodyString = new QString(argsObj["body"].asCString());
-        builder->body(MessageBody::PlainText, bodyString->toUtf8());
-
-        bb::pim::message::MessageService messageService;
-        messageService.send(-1, *builder);
-    }
-
-    /*******************************************************************
-    PRIVATE FUNCTIONS
-    *******************************************************************/
+    /*
+    ----Private Functions
+    */
 
     Json::Value PimMessageNdk::accountToJson(Account account)
     {
