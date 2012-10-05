@@ -7,6 +7,16 @@
 
 var _ID = require("./manifest.json").namespace;
 
+
+var Tab = (function () {
+    var Tab =  function () {};
+    Tab.prototype.resize = function () {};
+    Tab.prototype.setZOrder = function () {};
+    return Tab;
+}());
+
+
+
 /**
  * Exports are the publicly accessible functions
  */
@@ -46,7 +56,9 @@ module.exports = {
             args.options = options;
         }
 
-        return window.webworks.execSync(_ID, "create", args);
+        window.webworks.execSync(_ID, "create", args);
+
+        return new Tab();
     },
 
     /**
